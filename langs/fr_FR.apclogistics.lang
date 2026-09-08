@@ -1,0 +1,431 @@
+
+# Module APC Logistics & Procurement
+# Lang : Francais (FR_fr)
+# Code ISO : fr_FR
+
+# Module / Setup
+Module500100Name=APC Logistique & Achats
+Module500100Desc=Module natif de digitalisation logistique et achats pour APC ONG. Cycle documentaire complet : Etat de besoin, Requisition, Demande de prix, portail fournisseur, Bon de commande, Bon de reception, Stock, Avances et Paiements. Generation PDF conformes a la trame APC.
+APCLogisticsMenuTop=APC Logistique
+APCLogisticsMenu_dashboard=Tableau de bord
+APCLogisticsMenu_etatbesoin=Etats de besoin
+APCLogisticsMenu_requisition=Requisitions / Sorties
+APCLogisticsMenu_demandeprix=Demandes de prix
+APCLogisticsMenu_cotation=Cotations fournisseurs
+APCLogisticsMenu_boncommande=Bons de commande
+APCLogisticsMenu_bonreception=Bons de reception
+APCLogisticsMenu_stock=Stocks / Fiches article
+APCLogisticsMenu_demandeavance=Demandes d'avance
+APCLogisticsMenu_justifavance=Justifications d'avance
+APCLogisticsMenu_demandepaiement=Demandes de paiement
+
+# Dashboard
+APCDashboardTitle=Tableau de bord APC Logistique & Achats
+NewEtatBesoin=Nouvel Etat de besoin
+NewDemandePrix=Nouvelle Demande de prix
+NewBonCommande=Nouveau Bon de commande
+WidgetEtatBesoinPending=Etats de besoin en attente
+WidgetRequisitionPending=Requisitions en attente
+WidgetDemandePrixPending=Demandes de prix en attente
+WidgetBonCommandePending=Bons de commande en attente
+WidgetBonReceptionWeek=Receptions de la semaine
+WidgetStockCritique=Articles stock critique
+ChartMontantsPerMonth=Montants HT par type de document (mois glissant)
+ChartDepensesJustifPerMonth=Depenses justifiees par mois
+ChartStockCategory=Repartition stock par categorie
+
+# Statuts
+StatusDraft=Brouillon
+StatusPending=En attente de validation
+StatusValidated=Valide
+StatusSent=Envoye
+StatusExecuted=Execute
+StatusClosed=Solde
+StatusCancelled=Annule
+
+# Onglets fiches
+TabCard=Fiche
+TabLines=Lignes
+TabLinks=Liens documents
+TabHistory=Historique / Audit
+TabGenerate=Documents / PDF
+
+# Champs communs
+FieldRef=Reference
+FieldRefDocument=Ref. document
+FieldDateCreation=Date creation
+FieldDernMaj=Derniere modification
+FieldEntity=Entite
+FieldStatus=Statut
+FieldObjet=Objet
+FieldCompte=Compte budgetaire
+FieldTotal=Total
+FieldTotalHT=Total HT
+FieldProjet=Projet / Budget
+FieldBudget=Budget ligne
+FieldNom=Noms
+FieldFonction=Fonction
+FieldSignature=Signature
+FieldDateSignature=Date
+FieldObservations=Observations
+FieldNotes=Notes
+
+# Etat de besoin
+EBTitle=ETAT DE BESOIN
+EBRef=N° Etat de besoin
+EBDate=Date
+EBDemandeur=Demandeur
+EBVerificateur=Verificateur
+EBApprobateur=Approbateur
+EBColNo=N°
+EBColDepense=Depense
+EBColBudget=Budget
+EBColCompte=Compte
+EBColMontant=Montant (CDF/€)
+EBTotalLigne=Total ligne
+EBGeneralTotal=Total General
+
+# Requisition / Bon de sortie
+REQTitle=BON DE SORTIE MAGASIN
+REQRef=N° Requisition
+REQDateDemande=Date demande
+REQDemandeur=Demandeur
+REQMagasinier=Magasinier
+REQDateSortie=Date sortie
+REQColDate=Date
+REQColDesc=Description
+REQColQteDem=Quantite demandee
+REQColQteSort=Quantite sortie
+REQColEcart=Ecart
+
+# Demande de prix
+DPTitle=DEMANDE DE PRIX
+DPRef=N° Demande de prix
+DPDate=Date DP
+DPFournisseur=Fournisseur cible
+DPAdresse=Adresse
+DPContact=Personne contact
+DPTel=Telephone
+DPEmail=Email
+DPLieuLiv=Lieu de livraison
+DPDateLiv=Date souhaitee de livraison
+DPColNo=N°
+DPColSpec=Specification articles
+DPColUnit=Unite
+DPColQty=Quantite
+DPColPu=Prix Unitaire
+DPColTotal=Prix Total
+DPLegalNotice=Mention legale non-engagement APC
+DPSendToFournisseur=Envoyer au fournisseur (lien de cotation)
+DPCotationLink=Lien de cotation fournisseur
+DPCotationLinkExpire=Expire le
+
+# Cotation fournisseur (reponse)
+COTTitle=COTATION FOURNISSEUR
+COTRef=N° Cotation
+COTDate=Date de cotation
+COTNomFournisseur=Nom societe fournisseur
+COTAdresseFournisseur=Adresse fournisseur
+COTContactFournisseur=Contact fournisseur
+COTTelFournisseur=Telephone fournisseur
+COTConditions=Conditions de paiement
+COTDelai=Delai de livraison (jours)
+COTLieuLiv=Lieu de livraison
+COTDateLiv=Date de livraison proposee
+COTIpSoumission=IP soumission
+COTEcritureDate=Date d'enregistrement
+COTConvertToBC=Transformer en Bon de commande
+
+# Bon de commande
+BCTitle=BON DE COMMANDE
+BCRef=N° Bon de commande
+BCDate=Date
+BCFournisseur=Fournisseur
+BCLieuLiv=Lieu de livraison
+BCDateLiv=Date de livraison
+BCLogisticien=Logisticien APC
+BCCoordinateur=Coordinateur APC
+BCFournisseurSig=Fournisseur
+BCColNo=N°
+BCColDesc=Description
+BCColUnit=Unites
+BCColQty=Quantite
+BCColPu=Prix Unitaire
+BCColTotal=Prix Total
+BCGeneralTotal=Total General TTC/HT
+
+# Bon de reception
+BRTitle=BON DE RECEPTION
+BRRef=N° Bon de reception
+BRDateReception=Date de reception
+BRNomFournisseur=Nom fournisseur
+BRRefBC=N° Bon de commande
+BRRefBDL=Reference Bon de livraison
+BRRefFacture=Reference Facture fournisseur
+BRColNo=N°
+BRColDesc=Description
+BRColUnit=Unites
+BRColQteCmd=Quantite commandee
+BRColQteRec=Quantite recue
+BRColPu=Prix Unitaire
+BRColTotal=Prix Total
+BRColEcart=Ecart Qte
+BRPourReception=Pour reception APC
+BRPourLivraison=Pour livraison fournisseur
+BRDateRec=Date de reception
+BRDateBL=Date bon de livraison
+BRFournisseur=Fournisseur
+BRRefBL=Reference bon de livraison
+BRFKBC=N° Bon de commande
+BRFKCotation=N° Cotation
+BRTQC=Qte commandee
+BRTQR=Qte recue
+BRTEcart=Ecart
+BRTotalGeneral=TOTAL GENERAL
+BRColQC=Qte Cmd
+BRColQR=Qte recue
+BRColPU=Prix Unitaire
+BRColMotifEcart=Motif ecart
+BRSigRecepteur=Reception APC
+BRSigRecepteurDesc=Signature du recepteur APC (agent qui recoit la marchandise)
+BRSigLivreur=Livraison Fournisseur
+BRSigLivreurNom=Nom livreur
+BRSigLivreurCNI=N° CNI livreur
+BRStockInExplain=La validation appose les signatures et declare automatiquement les entrees de stock pour chaque ligne (qte recue).
+BRValidateStockInBtn=Valider la reception et entrer en stock
+BRValidatedStockInOK=Bon de reception valide — stock mis a jour
+BRFromBCOK=Bon de reception cree depuis le bon de commande
+NewBR=Nouveau bon de reception
+
+# Stock
+STKTitle=FICHE DE STOCK
+STKArticle=Article
+STKUnit=Unite
+STKStockActuel=Stock actuel
+STKGestionnaire=Gestionnaire de stock
+STKRespLog=Responsable Logistique
+STKSeuilAlerte=Seuil alerte
+STKColDate=Date
+STKColRef=Reference (BC/REQ)
+STKColEntree=Entree
+STKColSortie=Sortie
+STKColStock=Stock
+STKAlertCritique=STOCK CRITIQUE — Reapprovisionnement necessaire
+StockTitle=GESTION DE STOCK
+StockExportCSV=Exporter CSV
+StockUnit=Unite
+StockCurrent=Stock actuel
+StockAlert=Seuil alerte
+StockGest=Gestionnaire
+StockRespLog=Resp. Logistique
+StockLastUpd=Derniere MAJ
+StockOnlyLow=Stock bas uniquement
+StockMovs=Mouvements
+StockMovDate=Date
+StockMovType=Type
+StockMovRef=Reference (BC/REQ)
+StockMovIn=Entree
+StockMovOut=Sortie
+StockLow=STOCK BAS
+ExportCSV=Export CSV
+
+# Demande d'avance
+DAVTitle=DEMANDE D'AVANCE
+DAVRef=N° Demande d'avance
+DAVObjet=Objet
+DAVCompte=Compte
+DAVModePaiement=Mode de paiement
+DAVModeBanque=Virement bancaire
+DAVModeCaisse=Caisse
+DAVCoordBancaires=Coordonnees bancaires
+DAVColDepenses=Depenses
+DAVColProjet=Projet
+DAVColBudget=Budget
+DAVColMontant=Montant
+DAVDemandeur=Demandeur
+DAVVerificateur=Verificateur
+DAVApprobateur=Approbateur
+
+# Justification d'avance
+JAVTitle=JUSTIFICATION D'AVANCE
+JAVRef=N° Justification d'avance
+JAVLienDAV=Demande d'avance associee
+JAVSynth=Synthese
+JAVTotalDepense=Total des depenses justifiees
+JAVPriseAvance=Montant de l'avance percue
+JAVEcart=Ecart (solde)
+JAVEcartSoldeARendre=Solde a rendre par le demandeur
+JAVEcartSoldeDu=Solde du a APC
+JAVColCompte=Compte
+
+# Demande de paiement
+DPAITitle=DEMANDE DE PAIEMENT
+DPAIRef=N° Demande de paiement
+DPAICasUsage=Motif / Cas d'usage
+DPAICas1=Avance activites / TDR
+DPAICas2=Remboursement sur pieces justificatives
+DPAICas3=Paiement factures fournisseurs
+
+# Audit log / Historique
+AUDColDate=Date heure
+AUDColUser=Utilisateur
+AUDColAction=Action
+AUDColIp=IP
+AUDColDetails=Details
+AUDColOld=Valeurs precedentes
+AUDColNew=Nouvelles valeurs
+AUDCreate=Creation
+AUDUpdate=Modification
+AUDDelete=Suppression
+AUDValidate=Validation / Approbation
+AUDSend=Envoi fournisseur
+AUDPdf=Generation PDF
+AUDLink=Lien / transformation document
+AUDSignature=Signature enregistree
+AUDTokenConsume=Token de cotation consomme
+
+# Setup / Configuration
+SETUPTitle=Configuration module APC Logistique
+SETUPLogoUpload=Logo officiel APC (PNG 300 DPI — fichier actuel sera remplace)
+SETUPHeaderTexts=En-tete institutionnel APC
+SETUPHeaderOngName=Nom officiel de l'ONG
+SETUPHeaderAddress=Adresse (ville, pays)
+SETUPHeaderPhones=Telephones
+SETUPHeaderEmail=Email general
+SETUPHeaderArrete=Arrete ministeriel (reference legale)
+SETUPDPNotice=Mention legale Demande de prix (non-engagement)
+SETUPNotifEmail=Email notification logisticien
+SETUPTokenDays=Duree de validite token fournisseur (jours) — min 7, defaut 30, max 60
+SETUPPrefixes=Prefixes de numerotation
+SETUPStockAlertQTY=Seuil d'alerte stock critique
+
+# PDF / Documents
+PDFGenerateBtn=Generer PDF
+PDFDownloadBtn=Telecharger PDF
+PDFSendByMail=Envoyer par email
+
+# Portail fournisseur
+PUBWelcomeTitle=Formulaire de cotation APC ONG
+PUBWelcomeSub=Bienvenue sur le portail de reponse aux demandes de prix d'APC. Merci de remplir le formulaire ci-dessous.
+PUBSectionCoord=Vos coordonnees
+PUBSectionLiv=Informations de livraison
+PUBCoordNom=Nom de la societe *
+PUBCoordAdr=Adresse complete
+PUBCoordTel=Telephone *
+PUBCoordContact=Personne de contact *
+PUBCoordEmail=Email
+PUBLivLieu=Lieu exact de livraison *
+PUBLivDate=Date de livraison souhaitee *
+PUBLivDelai=Delai de livraison (jours ouvrés)
+PUBLivConditions=Conditions de reglement
+PUBSecPrices=Vos prix unitaires
+PUBColNo=N°
+PUBColSpec=Article / Specification
+PUBColUnit=Unite
+PUBColQty=Quantite
+PUBColPu=Prix Unitaire HT (CDF/€) *
+PUBColTotal=Total ligne
+PUBColNotes=Remarques
+PUBCheckConditions=Je confirme avoir pris connaissance des conditions et certifie l'exactitude des prix et informations saisis. *
+PUBSubmitBtn=Valider ma cotation
+PUBThanksTitle=Merci ! Votre cotation est enregistree.
+PUBThanksRef=Reference de votre cotation :
+PUBThanksMail=Un email de recapitulatif vous a ete envoye.
+PUBErrInvalid=Ce lien est invalide. Merci de contacter APC si vous pensez qu'il s'agit d'une erreur.
+PUBErrExpired=Ce lien de cotation a expire. Merci de demander a APC un nouveau lien.
+PUBErrUsed=Ce lien de cotation a deja ete utilise. Vous ne pouvez soumettre qu'une seule reponse par demande de prix.
+PUBErrRequired=Veuillez remplir tous les champs obligatoires (*).
+PUBErrTerms=Veuillez cocher la case de confirmation avant de valider.
+
+# Errors communs
+ErrorAccessForbidden=Acces refuse : vous n'avez pas la permission requise.
+ErrorCreateFailed=Erreur lors de l'enregistrement.
+ErrorUpdateFailed=Erreur lors de la mise a jour.
+ErrorDeleteFailed=Erreur lors de la suppression.
+ErrorLoadFailed=Erreur chargement de l'enregistrement.
+ErrorRefLocked=La reference du document ne peut pas etre modifiee apres validation.
+ErrorUploadLogo=Erreur lors de l'upload du logo (format accepte : PNG, taille max 5Mo).
+ErrorTokenDaysRange=La duree de validite du token doit etre comprise entre 7 et 60 jours.
+
+# Messages succes
+SavedOK=Enregistrement effectue avec succes.
+ValidatedOK=Document valide et verrouille.
+SentOK=Document envoye.
+DeletedOK=Suppression effectuee.
+SignOK=Signature enregistree.
+SetupSavedOK=Configuration sauvegardee.
+LinkGeneratedOK=Lien de cotation fournisseur genere avec succes. Copiez ce lien et envoyez-le au fournisseur.
+DPSentDate=Date d'envoi au fournisseur
+DPSentBy=Envoye par (utilisateur)
+DPReceivedCotations=Cotations fournisseurs recues
+DPSendToFournisseurDesc=Cliquez sur le bouton ci-dessous pour generer UN LIEN SECURISE de reponse pour ce fournisseur. Une URL unique avec jeton temporaire sera creee.
+TotalQty=Quantite totale
+
+# Boutons / Formulaires Demande de prix
+NewDemandePrix=Nouvelle demande de prix
+
+# Divers Demande de prix
+DPDate=Date DP
+
+# Status Bon de Commande (BC)
+BcStatusOrdered=Commandé
+BcStatusPartialRec=Réception partielle
+BcStatusFullyRec=Réception complète
+BCFKCotation=Cotation parente
+BCFromCotationOK=Bon de commande créé depuis la cotation
+BCTransformToBC=Transformer en Bon de Commande
+BCTotalHT=Total HT
+BCTotalTVA=Total TVA
+BCTotalTTC=Total TTC
+BCModeRegl=Conditions de règlement
+BCDelaiRegl=Délai règlement (jours)
+BCTauxTVA=Taux TVA (%)
+BCSignLog=Signatures : Logisticien APC
+BCSignCoord=Signatures : Coordinateur APC
+BCSignFourn=Signatures : Fournisseur
+BCDateBC=Date du Bon de commande
+BCDateLivPrev=Date de livraison prévue
+CreateBRFromBC=Créer le Bon de Réception depuis ce BC
+
+# Cotation (COT) - status/status
+CotStatusReceived=Reçue
+CotStatusReviewed=En revue
+CotStatusRetained=Retenue (gagnante)
+CotStatusRejected=Rejetée
+CotTransformToBC=Créer Bon de Commande depuis cette cotation
+CotFK_DP=Demande de Prix parente
+CotDelaiLiv=Délai de livraison
+CotDateValidOffre=Validité de l'offre (jusqu'au)
+
+# Task 13 - Onglet Liens documents
+LinkParents=Documents parents
+LinkChildren=Documents enfants
+LinkNone=Aucun document lie
+CreateBCFromCotation=Creer Bon de Commande depuis cette cotation
+
+# Task 14 - Page admin (setup) et Dashboard
+APCSetupIdentite=Identite APC
+APCSetupIdentiteDesc=En-tete utilise sur tous les documents PDF du module
+APCSetupLogo=Logo APC
+APCSetupHeaderONG=Nom de l'ONG
+APCSetupHeaderAddr=Adresse / Ville
+APCSetupHeaderContact=Email / Telephones
+APCSetupHeaderLegal=Arrete ministeriel / Mention legale en-tete
+APCSetupNotif=Notifications & Portail fournisseur
+APCSetupNotifDesc=Parametres d'envoi d'emails et de validite des liens fournisseur
+APCSetupNotifEmail=Email de notification logisticien
+APCSetupNotifEmailDesc=Recoit les alertes (cotation recue, stock critique, etc.)
+APCSetupTokenDays=Duree de validite du lien fournisseur
+APCSetupTokenDaysDesc=Le lien de cotation expire apres ce nombre de jours
+APCSetupLegalNotice=Mention legale Demande de Prix
+APCSetupLegalNoticeDesc=Texte affiche en bas de la Demande de Prix
+APCSetupPrefixes=Modeles de numerotation
+APCSetupPrefixesDesc=Prefixe par type de document (format PREFIXE-YYYY-NNNN)
+APCSetupStock=Stock & Alertes
+APCSetupStockAlert=Seuil d'alerte stock par defaut
+APCSetupStockAlertDesc=Quantite en dessous de laquelle un article est considere critique
+APCSetupHelpTitle=Aide memoire
+APCSetupHelp1=Le logo personnalise est utilise dans les PDF des que televerse
+APCSetupHelp2=Les prefixes de numerotation s'appliquent aux nouveaux documents
+APCSetupHelp3=Le seuil d'alerte stock s'applique aux nouvelles fiches produits
+APCDashTotalsMonth=Totaux montants du mois en cours

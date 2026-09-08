@@ -1,0 +1,158 @@
+/**
+ * APC Logistics & Procurement — styles complémentaires
+ * Complète le theme Dolibarr par defaut
+ */
+
+.dashboard-apc {
+    padding: 14px 0;
+}
+
+/* Raccourcis */
+.apc-quick-actions {
+    margin: 0 0 22px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Grille widgets */
+.apc-widgets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+}
+
+.apc-widget {
+    border-radius: 8px;
+    padding: 18px 20px;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.apc-widget__label {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-bottom: 10px;
+    line-height: 1.3;
+}
+.apc-widget__value {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.apc-widget--warning  { background: linear-gradient(135deg,#f0b429,#cb8510); }
+.apc-widget--info     { background: linear-gradient(135deg,#1a82d9,#0f5fa3); }
+.apc-widget--primary  { background: linear-gradient(135deg,#1a8754,#0f623c); }
+.apc-widget--accent   { background: linear-gradient(135deg,#7a4fd9,#5531ad); }
+.apc-widget--success  { background: linear-gradient(135deg,#2db472,#148a4e); }
+.apc-widget--danger   { background: linear-gradient(135deg,#e04b4b,#a41f1f); }
+
+/* Graphiques */
+.apc-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+.apc-chart {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 18px;
+}
+.apc-chart--wide { grid-column: 1 / -1; }
+.apc-chart__title {
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: #111827;
+}
+
+/* Totaux montants du mois */
+.apc-totals {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 28px;
+}
+.apc-totals__title {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 12px;
+}
+.apc-totals__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+}
+.apc-total {
+    background: #f5faf5;
+    border: 1px solid #cfe3cf;
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+}
+.apc-total__label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f623c;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.apc-total__value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin-top: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .apc-charts-grid { grid-template-columns: 1fr; }
+    .apc-widget__value { font-size: 26px; }
+}
+
+/* Statuts generiques (pastilles) */
+.apc-status {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+}
+.apc-status--brouillon  { background: #e5e7eb; color: #374151; }
+.apc-status--attente    { background: #fde68a; color: #92400e; }
+.apc-status--valide     { background: #bbf7d0; color: #166534; }
+.apc-status--envoye     { background: #bfdbfe; color: #1e3a8a; }
+.apc-status--execute    { background: #ddd6fe; color: #4c1d95; }
+.apc-status--solde      { background: #cffafe; color: #155e75; }
+.apc-status--annule     { background: #fecaca; color: #7f1d1d; }
+
+/* Tableau formattage monetaire */
+.apc-money { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+.apc-num   { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Stock : valeurs positives / negatives */
+.apc-pos { color: #166534; font-weight: 600; }
+.apc-neg { color: #b91c1c; font-weight: 700; }
+
+/* Stock : ligne surlignee quand stock <= seuil alerte */
+.apc-low-stock-row td { background: #fef2f2 !important; }
+.apc-low-stock-row:hover td { background: #fee2e2 !important; }
+
+/* Liens entre documents (onglet) */
+.apc-doc-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.apc-doc-links h4 { margin-top: 0; padding-bottom: 6px; border-bottom: 2px solid #1a8754; color: #0f623c; }
+.apc-doc-links ul { margin: 0; padding-left: 18px; }
+.apc-doc-links li { padding: 4px 0; }
