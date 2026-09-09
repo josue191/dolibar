@@ -29,6 +29,8 @@ class ApcAuditLog
     {
         global $db, $user;
 
+        if (defined('APC_TRACE')) { echo "[TRACE] auditlog entree " . $entityType . "/" . $entityId . "/" . $actionType . "\n"; @flush(); }
+
         if (!is_object($db)) return false;
 
         if (empty($fkUser) && is_object($user) && !empty($user->id)) {
@@ -72,6 +74,7 @@ class ApcAuditLog
             . " '" . $now . "'"
             . ")";
         $res = $db->query($sql);
+        if (defined('APC_TRACE')) { echo "[TRACE] auditlog sortie\n"; @flush(); }
         if (!$res) {
             dol_syslog("APCLOGISTICS ApcAuditLog::log() DB error : " . $db->lasterror(), LOG_WARNING);
             return false;

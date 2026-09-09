@@ -94,8 +94,12 @@ abstract class ApcObjectBase extends CommonObject
     {
         global $conf;
 
+        if (defined('APC_TRACE')) { echo "[TRACE] ApcObjectBase::create() entree ref='" . $this->ref . "'\n"; @flush(); }
+
         if (empty($this->ref)) {
+            if (defined('APC_TRACE')) { echo "[TRACE]   avant computeNextRef\n"; @flush(); }
             $this->ref = ApcNumbering::computeNextRef($this, $this->table_element);
+            if (defined('APC_TRACE')) { echo "[TRACE]   apres computeNextRef ref='" . $this->ref . "'\n"; @flush(); }
         }
 
         // Champ 'annee' (exercice) : si la classe le declare et qu'il n'est pas renseigne,
@@ -106,8 +110,11 @@ abstract class ApcObjectBase extends CommonObject
 
         $oldJson = null;
 
+        if (defined('APC_TRACE')) { echo "[TRACE]   avant parent::create\n"; @flush(); }
         $res = parent::create($user, $notrigger);
+        if (defined('APC_TRACE')) { echo "[TRACE]   apres parent::create res=" . var_export($res, true) . " id=" . $this->id . "\n"; @flush(); }
         if ($res > 0) {
+            if (defined('APC_TRACE')) { echo "[TRACE]   avant audit log\n"; @flush(); }
             ApcAuditLog::log(
                 $this->element,
                 (int)$this->id,
@@ -116,12 +123,15 @@ abstract class ApcObjectBase extends CommonObject
                 null,
                 json_encode($this->toArray(), JSON_UNESCAPED_UNICODE)
             );
+            if (defined('APC_TRACE')) { echo "[TRACE]   apres audit log\n"; @flush(); }
         }
         return $res;
     }
 
     public function update($user = 0, $notrigger = 0, $allowemptyref = 0)
     {
+        if (defined('APC_TRACE')) { echo "[TRACE] ApcObjectBase::update() entree id=" . $this->id . " ref='" . $this->ref . "'\n"; @flush(); }
+
         if ($this->refLocked && $this->refHasChanged()) {
             $this->error = 'ErrorRefLockedAfterValidation';
             return -1;
@@ -134,13 +144,18 @@ abstract class ApcObjectBase extends CommonObject
 
         $old = null;
         try {
+            if (defined('APC_TRACE')) { echo "[TRACE]   avant clone/fetch\n"; @flush(); }
             $clone = clone $this;
             $clone->fetch($this->id);
             $old = json_encode($clone->toArray(), JSON_UNESCAPED_UNICODE);
+            if (defined('APC_TRACE')) { echo "[TRACE]   apres clone/fetch\n"; @flush(); }
         } catch (Exception $e) { $old = null; }
 
+        if (defined('APC_TRACE')) { echo "[TRACE]   avant parent::update\n"; @flush(); }
         $res = parent::update($user, $notrigger, $allowemptyref);
+        if (defined('APC_TRACE')) { echo "[TRACE]   apres parent::update res=" . var_export($res, true) . "\n"; @flush(); }
         if ($res > 0) {
+            if (defined('APC_TRACE')) { echo "[TRACE]   avant audit log\n"; @flush(); }
             ApcAuditLog::log(
                 $this->element,
                 (int)$this->id,
@@ -149,6 +164,7 @@ abstract class ApcObjectBase extends CommonObject
                 $old,
                 json_encode($this->toArray(), JSON_UNESCAPED_UNICODE)
             );
+            if (defined('APC_TRACE')) { echo "[TRACE]   apres audit log\n"; @flush(); }
         }
         return $res;
     }

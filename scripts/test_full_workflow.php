@@ -35,6 +35,13 @@ if (! defined('NOREQUIRETRAN'))  define('NOREQUIRETRAN', 1);
 // sur nos objets custom meme sans trigger APC (voir run_triggers de Dolibarr 20).
 if (! defined('MAIN_DISABLE_ALL_MAILS')) define('MAIN_DISABLE_ALL_MAILS', 1);
 
+// [TRACE] Mode diagnostic : active les traces [TRACE] dans les classes du module.
+// A retirer une fois le gel identifie.
+if (! defined('APC_TRACE')) define('APC_TRACE', 1);
+// Affichage immediat meme via le terminal web cPanel
+if (function_exists('ob_implicit_flush')) { ob_implicit_flush(true); }
+while (ob_get_level() > 0) { @ob_end_flush(); }
+
 // Chemin vers master.inc.php : scripts/ -> ../../../master.inc.php
 // (scripts/ = custom/apclogistics/scripts/ ; ../../../ = racine Dolibarr)
 $masterPath = dirname(__DIR__, 3) . '/master.inc.php';
@@ -134,29 +141,56 @@ echo "\n";
 // 3) ETAPE 1 : Creation EB valide (3 signatures)
 // ============================================================
 echo "--- ETAPE 1 : Etat de Besoin (3 signatures) ---\n";
+// [TRACE] Diagnostic MySQL : connexions actives (zombies ?) + timeouts de verrouillage
+$resP = $db->query("SHOW FULL PROCESSLIST");
+if ($resP) {
+    echo "[TRACE] --- SHOW FULL PROCESSLIST ---\n";
+    while ($o = $db->fetch_object($resP)) {
+        echo "[TRACE]   id=" . $o->Id . " user=" . $o->User . " host=" . $o->Host
+           . " db=" . $o->db . " cmd=" . $o->Command . " time=" . $o->Time
+           . " state=" . $o->State . " info=" . substr((string)$o->Info, 0, 100) . "\n";
+    }
+    echo "[TRACE] --- fin PROCESSLIST ---\n";
+}
+$resT = $db->query("SELECT @@innodb_lock_wait_timeout AS ilwt, @@lock_wait_timeout AS lwt");
+if ($resT && $o = $db->fetch_object($resT)) {
+    echo "[TRACE] innodb_lock_wait_timeout=" . $o->ilwt . " lock_wait_timeout=" . $o->lwt . "\n";
+}
+echo "[TRACE] E1.1 avant new ApcEtatBesoin\n"; @flush();
 $eb = new ApcEtatBesoin($db);
+echo "[TRACE] E1.2 apres constructeur\n"; @flush();
 $eb->date_eb = $db->idate(dol_now());
 $eb->objet   = 'Test bout-en-bout AC-5 — fournitures bureau';
 $eb->status  = ApcEtatBesoin::STATUS_DRAFT;
+echo "[TRACE] E1.3 avant create()\n"; @flush();
 $res = $eb->create($uDemandeur, 1);
+echo "[TRACE] E1.4 apres create() res=" . var_export($res, true) . " id=" . $eb->id . " ref=" . $eb->ref . "\n"; @flush();
 t_check('EB cree', $res > 0, 'id=' . $eb->id . ' ref=' . $eb->ref);
 
 if ($res > 0) {
+    echo "[TRACE] E1.5 avant lignes\n"; @flush();
     // 3 lignes
     $l1 = makeEbLine($db, $eb->id, 1, 'Rames papier A4', 'Fonctionnement', '6011', 100, $uDemandeur);
     $l2 = makeEbLine($db, $eb->id, 2, 'Cartouches encre', 'Fonctionnement', '6011', 50,  $uDemandeur);
     $l3 = makeEbLine($db, $eb->id, 3, 'Classeurs',        'Fonctionnement', '6011', 30,  $uDemandeur);
+    echo "[TRACE] E1.6 apres lignes l1=" . $l1 . " l2=" . $l2 . " l3=" . $l3 . "\n"; @flush();
     t_check('3 lignes EB creees', $l1 > 0 && $l2 > 0 && $l3 > 0);
 
     $eb->fetchLines();
     $eb->calculateTotals();
+    echo "[TRACE] E1.7 avant update total\n"; @flush();
     $eb->update($uDemandeur, 1);
+    echo "[TRACE] E1.8 apres update total\n"; @flush();
     t_check('Total EB = 180', abs((float)$eb->total_ht - 180) < 0.01, 'total=' . $eb->total_ht);
 
     // 3 signatures
+    echo "[TRACE] E1.9 avant sign 0/1/2\n"; @flush();
     $s0 = $eb->sign(0, $uDemandeur,    'Jean KAMBALE',    'Chef de service', null, 1);
+    echo "[TRACE] E1.10 apres sign0 s0=" . $s0 . "\n"; @flush();
     $s1 = $eb->sign(1, $uVerificateur, 'Marie MUKUNDI',   'Verificateur', null, 1);
+    echo "[TRACE] E1.11 apres sign1 s1=" . $s1 . "\n"; @flush();
     $s2 = $eb->sign(2, $uApprobateur,  'Patrick BAHATI',  'Coordinateur', null, 1);
+    echo "[TRACE] E1.12 apres sign2 s2=" . $s2 . "\n"; @flush();
     t_check('3 signatures EB appliquees', $s0 > 0 && $s1 > 0 && $s2 > 0);
     t_check('EB valide (status=2)', (int)$eb->status === ApcEtatBesoin::STATUS_VALIDATED, 'status=' . $eb->status);
 }
