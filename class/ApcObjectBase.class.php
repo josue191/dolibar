@@ -112,7 +112,7 @@ abstract class ApcObjectBase extends CommonObject
                 $this->element,
                 (int)$this->id,
                 'CREATE',
-                $user->id,
+                ($user ? (int)$user->id : 0),
                 null,
                 json_encode($this->toArray(), JSON_UNESCAPED_UNICODE)
             );
@@ -161,7 +161,7 @@ abstract class ApcObjectBase extends CommonObject
 
         $res = parent::delete($user, $notrigger);
         if ($res > 0) {
-            ApcAuditLog::log($type, $id, 'DELETE', $user->id, $old, null);
+            ApcAuditLog::log($type, $id, 'DELETE', ($user ? (int)$user->id : 0), $old, null);
         }
         return $res;
     }

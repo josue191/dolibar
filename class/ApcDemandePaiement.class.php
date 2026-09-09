@@ -10,6 +10,7 @@ if (! defined('DOL_VERSION')) die('');
 
 require_once __DIR__ . '/ApcObjectBase.class.php';
 require_once __DIR__ . '/ApcAuditLog.class.php';
+require_once DOL_DOCUMENT_ROOT . '/user/class/user.class.php';
 
 class ApcDemandePaiement extends ApcObjectBase
 {
