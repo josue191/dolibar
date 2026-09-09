@@ -81,7 +81,7 @@ class ApcDemandePrix extends ApcObjectBase
      * @param int  $validityDays  si null utilise conf
      * @return string|false  URL complete ex. https://site.org/custom/apclogistics/public/cotation.php?token=xxx
      */
-    public function generateSupplierLink(User $user, $validityDays = null)
+    public function generateSupplierLink(User $user, $validityDays = null, $notrigger = 0)
     {
         global $conf;
         $clear = ApcToken::generate($this->db, (int)$this->id, $validityDays);
@@ -104,7 +104,7 @@ class ApcDemandePrix extends ApcObjectBase
                 ? "Cette demande de prix n'oblige en rien APC a contracter, a acheter ou a consommer votre service"
                 : $conf->global->APCLOGISTICS_DP_LEGAL_NOTICE;
         }
-        $this->update($user);
+        $this->update($user, $notrigger);
 
         ApcAuditLog::log($this->element, (int)$this->id, 'SEND', $user->id, null, null,
             'Generation lien fournisseur (token_id=' . $rowid . ')');

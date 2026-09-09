@@ -79,7 +79,7 @@ class ApcEtatBesoin extends ApcObjectBase
     }
 
     /** Applique la signature Demandeur, Verificateur OU Approbateur selon $level (0/1/2) */
-    public function sign($level, User $user, $nom = null, $fonction = null, $date = null)
+    public function sign($level, User $user, $nom = null, $fonction = null, $date = null, $notrigger = 0)
     {
         if ($date === null) $date = dol_now();
         $mapUser = array(
@@ -99,7 +99,7 @@ class ApcEtatBesoin extends ApcObjectBase
             $this->status = self::STATUS_VALIDATED;
             $this->lockRef();
         }
-        $res = $this->update($user);
+        $res = $this->update($user, $notrigger);
         if ($res > 0) {
             ApcAuditLog::log($this->element, (int)$this->id, 'SIGN', $user->id,
                 null, null, 'Signature niveau ' . $level . ' (' . $m['nom'] . ')');

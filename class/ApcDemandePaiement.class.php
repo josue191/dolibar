@@ -127,7 +127,7 @@ class ApcDemandePaiement extends ApcObjectBase
     }
 
     /** Signature $level 0 (Demandeur) / 1 (Verificateur) / 2 (Approbateur/Ordonnateur) */
-    public function sign($level, User $user, $nom = null, $fonction = null, $date = null)
+    public function sign($level, User $user, $nom = null, $fonction = null, $date = null, $notrigger = 0)
     {
         if ($date === null) $date = dol_now();
         $map = array(
@@ -147,7 +147,7 @@ class ApcDemandePaiement extends ApcObjectBase
             $this->status = self::STATUS_VALIDATED;
             $this->lockRef();
         }
-        $res = $this->update($user);
+        $res = $this->update($user, $notrigger);
         if ($res > 0) {
             ApcAuditLog::log($this->element, (int)$this->id, 'SIGN', $user->id,
                 null, null, 'Signature niveau ' . $level . ' cas_usage=' . $this->cas_usage);

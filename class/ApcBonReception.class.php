@@ -141,7 +141,7 @@ class ApcBonReception extends ApcObjectBase
      * @param User $u
      * @return ApcBonReception|false
      */
-    public static function createFromBonCommande(ApcBonCommande $bc, User $u)
+    public static function createFromBonCommande(ApcBonCommande $bc, User $u, $notrigger = 0)
     {
         $db = $bc->db;
         $br = new self($db);
@@ -151,7 +151,7 @@ class ApcBonReception extends ApcObjectBase
         $br->fournisseur_nom = $bc->fournisseur_nom;
         $br->date_reception = dol_now();
 
-        $res = $br->create($u);
+        $res = $br->create($u, $notrigger);
         if ($res <= 0) return false;
 
         $bc->fetchLines();
@@ -168,10 +168,10 @@ class ApcBonReception extends ApcObjectBase
             $brl->qte_recue        = $bcl->quantite;
             $brl->prix_unitaire    = $bcl->prix_unitaire;
             $brl->prix_total_ligne = round((float)$bcl->prix_unitaire * (float)$bcl->quantite, 2);
-            $brl->create($u);
+            $brl->create($u, $notrigger);
         }
         $br->calculateTotals();
-        $br->update($u);
+        $br->update($u, $notrigger);
         ApcAuditLog::log($br->element, $br->id, 'CREATE_FROM_BC', $u->id,
             null, null, 'Creation depuis Bon de Commande ' . $bc->ref);
         return $br;
@@ -181,7 +181,7 @@ class ApcBonReception extends ApcObjectBase
      * Valide le BR, appose signatures, et declare les ENTREES de stock.
      * @return int
      */
-    public function validateAndStockIn(User $userRecepteur, $livreurNom, $livreurFct, $livreurCni)
+    public function validateAndStockIn(User $userRecepteur, $livreurNom, $livreurFct, $livreurCni, $notrigger = 0)
     {
         $this->fetchLines();
         $this->calculateTotals();
@@ -198,7 +198,7 @@ class ApcBonReception extends ApcObjectBase
         $this->livraison_date_sig = dol_now();
         $this->livraison_cni      = $livreurCni;
 
-        $ok = $this->update($userRecepteur);
+        $ok = $this->update($userRecepteur, $notrigger);
         if ($ok <= 0) return $ok;
 
         $nbMvt = 0;
@@ -212,9 +212,10 @@ class ApcBonReception extends ApcObjectBase
                         (float)$line->qte_recue,
                         0,
                         $userRecepteur,
-                        'Entree magasin via Bon Reception ' . $this->ref);
+                        'Entree magasin via Bon Reception ' . $this->ref,
+                        $notrigger);
                     $line->stock_processed = 1;
-                    $line->update($userRecepteur);
+                    $line->update($userRecepteur, $notrigger);
                     $nbMvt++;
                 }
             }
@@ -222,7 +223,7 @@ class ApcBonReception extends ApcObjectBase
 
         $this->stock_integre = 1;
         $this->date_integration_stock = dol_now();
-        $this->update($userRecepteur);
+        $this->update($userRecepteur, $notrigger);
 
         ApcAuditLog::log($this->element, (int)$this->id, 'VALIDATE_STOCK_IN', $userRecepteur->id,
             null, null, 'Validation BR + stock in (' . $nbMvt . ' mouvements)');

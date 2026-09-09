@@ -157,7 +157,7 @@ class ApcBonCommande extends ApcObjectBase
      * @param User        $userCoord  Coordinateur signataire (optionnel)
      * @return ApcBonCommande|false
      */
-    public static function createFromCotation(ApcCotation $cot, User $userLog, User $userCoord = null)
+    public static function createFromCotation(ApcCotation $cot, User $userLog, User $userCoord = null, $notrigger = 0)
     {
         global $user, $conf, $langs;
         $db = $cot->db;
@@ -179,7 +179,7 @@ class ApcBonCommande extends ApcObjectBase
 
         $cot->fetchLines();
 
-        $res = $bc->create($userLog);
+        $res = $bc->create($userLog, $notrigger);
         if ($res <= 0) return false;
 
         $noLigne = 1;
@@ -196,7 +196,7 @@ class ApcBonCommande extends ApcObjectBase
             $bl->prix_unitaire      = $cl->prix_unitaire_ht;
             $bl->prix_total_ligne   = $cl->total_ht;
             $bl->tva_tx             = $cl->tva_tx;
-            $bl->create($userLog);
+            $bl->create($userLog, $notrigger);
         }
 
         $bc->calculateTotals();
@@ -215,7 +215,7 @@ class ApcBonCommande extends ApcObjectBase
             $bc->fk_user_coordinateur  = $userCoord->id;
         }
 
-        $bc->update($userLog);
+        $bc->update($userLog, $notrigger);
 
         ApcAuditLog::log($bc->element, $bc->id, 'CREATE_FROM_COT', $userLog->id,
             null, null, 'Transformation depuis Cotation ' . $cot->ref);

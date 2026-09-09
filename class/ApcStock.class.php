@@ -86,7 +86,7 @@ class ApcStock extends ApcObjectBase
      * Charge ou cree une fiche stock pour un produit Dolibarr.
      * @return int  rowid si ok, -1 si erreur
      */
-    public function loadOrCreateForProduct($fkProduct, $unite, User $userCreator)
+    public function loadOrCreateForProduct($fkProduct, $unite, User $userCreator, $notrigger = 0)
     {
         global $conf, $langs;
         $fkProduct = (int)$fkProduct;
@@ -114,7 +114,7 @@ class ApcStock extends ApcObjectBase
         if (!isset($this->stock_actuel)) $this->stock_actuel = 0;
         $seuilConf = isset($conf->global->APCLOGISTICS_STOCK_ALERT) ? (int)$conf->global->APCLOGISTICS_STOCK_ALERT : 5;
         if (!isset($this->seuil_alerte)) $this->seuil_alerte = $seuilConf;
-        return $this->create($userCreator);
+        return $this->create($userCreator, $notrigger);
     }
 
     /**
@@ -129,7 +129,7 @@ class ApcStock extends ApcObjectBase
      * @param string $motif
      * @return int|false
      */
-    public function addMovement($typeMvt, $fkDoc, $refDoc, $unite, $qteIn, $qteOut, User $user, $motif = '')
+    public function addMovement($typeMvt, $fkDoc, $refDoc, $unite, $qteIn, $qteOut, User $user, $motif = '', $notrigger = 0)
     {
         $qteIn  = (float)$qteIn;
         $qteOut = (float)$qteOut;
@@ -150,7 +150,7 @@ class ApcStock extends ApcObjectBase
         $mvt->motif           = $motif;
         $mvt->fk_user         = $user->id;
 
-        $resMvt = $mvt->create($user);
+        $resMvt = $mvt->create($user, $notrigger);
         if ($resMvt <= 0) {
             $this->error = $mvt->error;
             return false;
@@ -159,7 +159,7 @@ class ApcStock extends ApcObjectBase
         $this->stock_actuel = $after;
         $this->last_movement_date = dol_now();
         $this->last_stock_update  = dol_now();
-        $res = $this->update($user);
+        $res = $this->update($user, $notrigger);
 
         ApcAuditLog::log($this->element, $this->id, 'MVT_' . $typeMvt, $user->id,
             null, null,

@@ -30,6 +30,10 @@ if (! defined('NOREQUIREHTML'))  define('NOREQUIREHTML', 1);
 if (! defined('NOREQUIREAJAX'))  define('NOREQUIREAJAX', 1);
 if (! defined('NOREQUIRESOC'))   define('NOREQUIRESOC', 1);
 if (! defined('NOREQUIRETRAN'))  define('NOREQUIRETRAN', 1);
+// Neutralise tous les envois de mails (CMailFile::sendfile le verifie).
+// Necessaire en CLI : les triggers Dolibarr (core + modules tiers) s'executent
+// sur nos objets custom meme sans trigger APC (voir run_triggers de Dolibarr 20).
+if (! defined('MAIN_DISABLE_ALL_MAILS')) define('MAIN_DISABLE_ALL_MAILS', 1);
 
 // Chemin vers master.inc.php : scripts/ -> ../../../master.inc.php
 // (scripts/ = custom/apclogistics/scripts/ ; ../../../ = racine Dolibarr)
@@ -102,7 +106,7 @@ function makeEbLine($db, $fkEb, $no, $depense, $projet, $compte, $montant, $user
     $l->projet_or_budget = $projet;
     $l->compte           = $compte;
     $l->montant          = (float)$montant;
-    return $l->create($user);
+    return $l->create($user, 1);
 }
 
 echo "============================================================\n";
@@ -134,7 +138,7 @@ $eb = new ApcEtatBesoin($db);
 $eb->date_eb = $db->idate(dol_now());
 $eb->objet   = 'Test bout-en-bout AC-5 — fournitures bureau';
 $eb->status  = ApcEtatBesoin::STATUS_DRAFT;
-$res = $eb->create($uDemandeur);
+$res = $eb->create($uDemandeur, 1);
 t_check('EB cree', $res > 0, 'id=' . $eb->id . ' ref=' . $eb->ref);
 
 if ($res > 0) {
@@ -146,13 +150,13 @@ if ($res > 0) {
 
     $eb->fetchLines();
     $eb->calculateTotals();
-    $eb->update($uDemandeur);
+    $eb->update($uDemandeur, 1);
     t_check('Total EB = 180', abs((float)$eb->total_ht - 180) < 0.01, 'total=' . $eb->total_ht);
 
     // 3 signatures
-    $s0 = $eb->sign(0, $uDemandeur,    'Jean KAMBALE',    'Chef de service');
-    $s1 = $eb->sign(1, $uVerificateur, 'Marie MUKUNDI',   'Verificateur');
-    $s2 = $eb->sign(2, $uApprobateur,  'Patrick BAHATI',  'Coordinateur');
+    $s0 = $eb->sign(0, $uDemandeur,    'Jean KAMBALE',    'Chef de service', null, 1);
+    $s1 = $eb->sign(1, $uVerificateur, 'Marie MUKUNDI',   'Verificateur', null, 1);
+    $s2 = $eb->sign(2, $uApprobateur,  'Patrick BAHATI',  'Coordinateur', null, 1);
     t_check('3 signatures EB appliquees', $s0 > 0 && $s1 > 0 && $s2 > 0);
     t_check('EB valide (status=2)', (int)$eb->status === ApcEtatBesoin::STATUS_VALIDATED, 'status=' . $eb->status);
 }
@@ -166,11 +170,11 @@ echo "--- ETAPE 2 : Requisition (sortie stock) ---\n";
 // les mouvements REQ (sortie) et BR (entree) s'appliqueront dessus.
 // Idempotent : si la fiche existe deja (relance du test), on la recharge et on reinitialise.
 $stock = new ApcStock($db);
-$resStock = $stock->loadOrCreateForProduct(1, 'unite', $uMagasinier);
+$resStock = $stock->loadOrCreateForProduct(1, 'unite', $uMagasinier, 1);
 if ($resStock > 0) {
     $stock->stock_actuel = 10;
     $stock->seuil_alerte = 2;
-    $stock->update($uMagasinier);
+    $stock->update($uMagasinier, 1);
 }
 t_check('Fiche stock initiale prete (stock=10)', $resStock > 0, 'id=' . $stock->id . ' ref=' . $stock->ref);
 
@@ -179,7 +183,7 @@ $req->fk_etatbesoin = (int)$eb->id;
 $req->date_demande  = $db->idate(dol_now());
 $req->objet         = 'Sortie fournitures bureau';
 $req->status        = ApcRequisition::STATUS_DRAFT;
-$res = $req->create($uDemandeur);
+$res = $req->create($uDemandeur, 1);
 t_check('REQ creee', $res > 0, 'id=' . $req->id . ' ref=' . $req->ref);
 
 if ($res > 0) {
@@ -193,15 +197,15 @@ if ($res > 0) {
     $rl->qte_demandee   = 5;
     $rl->qte_sortie     = 5;
     $rl->ecart_qte      = 0;
-    $resL = $rl->create($uDemandeur);
+    $resL = $rl->create($uDemandeur, 1);
     t_check('Ligne REQ creee (qte_sortie=5)', $resL > 0);
 
     // Signature demandeur (level 0)
-    $sReq = $req->sign(0, $uDemandeur, 'Jean KAMBALE', 'Chef de service');
+    $sReq = $req->sign(0, $uDemandeur, 'Jean KAMBALE', 'Chef de service', 1);
     t_check('Signature demandeur REQ', $sReq > 0);
 
     // Validation + traitement stock (sortie)
-    $vReq = $req->validateAndProcessStock($uDemandeur, $uMagasinier, 'Alice KAVIRA', 'Magasinier');
+    $vReq = $req->validateAndProcessStock($uDemandeur, $uMagasinier, 'Alice KAVIRA', 'Magasinier', 1);
     t_check('REQ validee + stock sortie', $vReq > 0, 'status=' . $req->status);
     t_check('REQ validee (status=2)', (int)$req->status === ApcRequisition::STATUS_VALIDATED);
 }
@@ -220,7 +224,7 @@ $dp->fournisseur_contact = 'M. Fournisseur';
 $dp->lieu_livraison    = 'Goma, RD Congo';
 $dp->date_livraison    = $db->idate(time() + 14 * 86400);
 $dp->status            = ApcDemandePrix::STATUS_DRAFT;
-$res = $dp->create($uLogisticien);
+$res = $dp->create($uLogisticien, 1);
 t_check('DP creee', $res > 0, 'id=' . $dp->id . ' ref=' . $dp->ref);
 
 if ($res > 0) {
@@ -232,11 +236,11 @@ if ($res > 0) {
     $dl->unite          = 'unite';
     $dl->quantite       = 5;
     $dl->fk_product     = 1;
-    $resL = $dl->create($uLogisticien);
+    $resL = $dl->create($uLogisticien, 1);
     t_check('Ligne DP creee (qte=5)', $resL > 0);
 
     // Generation token + lien fournisseur
-    $url = $dp->generateSupplierLink($uLogisticien, 30);
+    $url = $dp->generateSupplierLink($uLogisticien, 30, 1);
     t_check('Token genere + lien fournisseur', is_string($url) && strpos($url, 'token=') !== false, $url);
     t_check('DP passee en SENT (status=3)', (int)$dp->status === ApcDemandePrix::STATUS_SENT, 'status=' . $dp->status);
 
@@ -328,7 +332,7 @@ if ($cot === null) {
     $cot->signature_fournisseur_ip   = '127.0.0.1';
     $cot->status = ApcCotation::STATUS_RECEIVED;
 
-    $resCot = $cot->create($uPublic);
+    $resCot = $cot->create($uPublic, 1);
     if ($resCot > 0) {
         // Ligne cotation (reprise de la ligne DP)
         $dp->fetchLines();
@@ -347,11 +351,11 @@ if ($cot === null) {
             $cl->total_ht            = round(20 * (float)$ln->quantite, 2);
             $cl->remarque            = '';
             $cl->tva_tx              = 0;
-            $cl->create($uPublic);
+            $cl->create($uPublic, 1);
             $noLigne++;
         }
         $cot->calculateTotals();
-        $cot->update($uPublic);
+        $cot->update($uPublic, 1);
     }
 }
 
@@ -370,9 +374,9 @@ $bc = null;
 if ($cot && $cot->id > 0) {
     // Marquer la cotation RETAINED (retenue) avant transformation
     $cot->status = ApcCotation::STATUS_RETAINED;
-    $cot->update($uLogisticien);
+    $cot->update($uLogisticien, 1);
 
-    $bc = ApcBonCommande::createFromCotation($cot, $uLogisticien, $uApprobateur);
+    $bc = ApcBonCommande::createFromCotation($cot, $uLogisticien, $uApprobateur, 1);
     t_check('BC cree depuis cotation', $bc !== false && $bc->id > 0, 'id=' . ($bc ? $bc->id : 0) . ' ref=' . ($bc ? $bc->ref : ''));
     if ($bc && $bc->id > 0) {
         t_check('BC ORDERED (status=2)', (int)$bc->status === ApcBonCommande::STATUS_ORDERED, 'status=' . $bc->status);
@@ -389,7 +393,7 @@ echo "\n";
 echo "--- ETAPE 6 : Bon de Reception (entree stock) ---\n";
 $br = null;
 if ($bc && $bc->id > 0) {
-    $br = ApcBonReception::createFromBonCommande($bc, $uRecepteur);
+    $br = ApcBonReception::createFromBonCommande($bc, $uRecepteur, 1);
     t_check('BR cree depuis BC', $br !== false && $br->id > 0, 'id=' . ($br ? $br->id : 0) . ' ref=' . ($br ? $br->ref : ''));
     if ($br && $br->id > 0) {
         t_check('BR lie au BC', (int)$br->fk_boncommande === (int)$bc->id);
@@ -401,12 +405,12 @@ if ($bc && $bc->id > 0) {
         foreach ($br->lines as $bl) {
             $bl->qte_recue = 3;
             $bl->prix_total_ligne = round(20 * 3, 2);
-            $bl->update($uRecepteur);
+            $bl->update($uRecepteur, 1);
         }
         $br->calculateTotals();
-        $br->update($uRecepteur);
+        $br->update($uRecepteur, 1);
 
-        $vBr = $br->validateAndStockIn($uRecepteur, 'Livreur Test', 'Chauffeur', 'CNI-123456');
+        $vBr = $br->validateAndStockIn($uRecepteur, 'Livreur Test', 'Chauffeur', 'CNI-123456', 1);
         t_check('BR validee + stock entree', $vBr > 0, 'status=' . $br->status);
         t_check('BR validee (status=2)', (int)$br->status === ApcBonReception::STATUS_VALIDATED);
         t_check('Stock integre', (int)$br->stock_integre === 1);
@@ -425,7 +429,7 @@ echo "--- ETAPE 7 : Verification stock final ---\n";
 //   stock final attendu = 8
 
 $stock = new ApcStock($db);
-$resLoad = $stock->loadOrCreateForProduct(1, 'unite', $uMagasinier);
+$resLoad = $stock->loadOrCreateForProduct(1, 'unite', $uMagasinier, 1);
 t_check('Fiche stock produit 1 chargee', $resLoad > 0, 'id=' . $stock->id . ' ref=' . $stock->ref);
 
 $stockFinal = (float)$stock->stock_actuel;

@@ -72,7 +72,7 @@ class ApcRequisition extends ApcObjectBase
      * @param string|null $fonction
      * @return int
      */
-    public function sign($level, User $user, $nom = null, $fonction = null)
+    public function sign($level, User $user, $nom = null, $fonction = null, $notrigger = 0)
     {
         $level = (int)$level;
         if ($level !== 0) return -1;
@@ -81,7 +81,7 @@ class ApcRequisition extends ApcObjectBase
         $this->demandeur_fonction = $fonction;
         $this->date_signature_demandeur = dol_now();
         $this->status = max($this->status, self::STATUS_PENDING);
-        $res = $this->update($user);
+        $res = $this->update($user, $notrigger);
         if ($res > 0) {
             ApcAuditLog::log($this->element, (int)$this->id, 'SIGN', $user->id,
                 null, null, 'Signature demandeur (level 0)');
@@ -99,7 +99,7 @@ class ApcRequisition extends ApcObjectBase
      * @param string|null $fonction Fonction signataire
      * @return int
      */
-    public function validateAndProcessStock(User $userDemandeur, User $userMagasinier, $nom = null, $fonction = null)
+    public function validateAndProcessStock(User $userDemandeur, User $userMagasinier, $nom = null, $fonction = null, $notrigger = 0)
     {
         $this->fetchLines();
 
@@ -112,7 +112,7 @@ class ApcRequisition extends ApcObjectBase
 
         $this->status = self::STATUS_VALIDATED;
         $this->lockRef();
-        $ok = $this->update($userMagasinier);
+        $ok = $this->update($userMagasinier, $notrigger);
         if ($ok <= 0) return $ok;
 
         $countStock = 0;
@@ -126,7 +126,8 @@ class ApcRequisition extends ApcObjectBase
                         0,
                         (float)$line->qte_sortie,
                         $userMagasinier,
-                        'Sortie magasin via Requisition ' . $this->ref);
+                        'Sortie magasin via Requisition ' . $this->ref,
+                        $notrigger);
                     $countStock++;
                 }
             }

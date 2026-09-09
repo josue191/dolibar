@@ -121,7 +121,7 @@ class ApcJustifAvance extends ApcObjectBase
      * @param User $u
      * @return ApcJustifAvance|false
      */
-    public static function createFromDemandeAvance(ApcDemandeAvance $dav, User $u)
+    public static function createFromDemandeAvance(ApcDemandeAvance $dav, User $u, $notrigger = 0)
     {
         $db = $dav->db;
         $jav = new self($db);
@@ -131,7 +131,7 @@ class ApcJustifAvance extends ApcObjectBase
         $jav->devise            = $dav->devise ?: 'CDF';
         $jav->objet             = $dav->objet;
 
-        $res = $jav->create($u);
+        $res = $jav->create($u, $notrigger);
         if ($res <= 0) return false;
 
         ApcAuditLog::log($jav->element, $jav->id, 'CREATE_FROM_DAV', $u->id,
@@ -140,7 +140,7 @@ class ApcJustifAvance extends ApcObjectBase
     }
 
     /** Signature : $level 0 (Auteur/Justif) / 1 (Verificateur) / 2 (Approbateur) */
-    public function sign($level, User $user, $nom = null, $fonction = null, $date = null)
+    public function sign($level, User $user, $nom = null, $fonction = null, $date = null, $notrigger = 0)
     {
         if ($date === null) $date = dol_now();
         $map = array(
@@ -160,7 +160,7 @@ class ApcJustifAvance extends ApcObjectBase
             $this->status = self::STATUS_VALIDATED;
             $this->lockRef();
         }
-        $res = $this->update($user);
+        $res = $this->update($user, $notrigger);
         if ($res > 0) {
             ApcAuditLog::log($this->element, (int)$this->id, 'SIGN', $user->id,
                 null, null, 'Signature niveau ' . $level);
