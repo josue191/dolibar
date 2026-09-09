@@ -8,7 +8,7 @@
 
 if (! defined('DOL_VERSION')) die('');
 
-require_once DOL_DOCUMENT_ROOT . '/core/class/CommonObject.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/commonobject.class.php';
 require_once __DIR__ . '/ApcAuditLog.class.php';
 
 abstract class ApcObjectBase extends CommonObject

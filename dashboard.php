@@ -1,14 +1,17 @@
-<?php
-/* Copyright (C) 2026 APC ONG Agri-Peace and Child <contact@apc-ong.org>
- *
- * Tableau de bord du module APC Logistics & Procurement
- * - 6 widgets : EB/REQ/DP/BC en attente, BR dernière semaine, Stock critique
- * - Totaux montants cumulés (mois en cours)
- * - Boutons raccourcis vers créations
- * - Graphiques Chart.js v4 local (vendor/chartjs/chart.umd.min.js)
- */
 
-require '../../main.inc.php';
+<style>
+.chart-container {
+    position: relative;
+    width: 100%;
+}
+.chart-container canvas {
+}
+</style>
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+require_once '/home/iapbdruz/gestion.agri-peaceandchild.org/main.inc.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
 require_once __DIR__ . '/class/ApcStock.class.php';
@@ -233,15 +236,15 @@ if ($user->admin) {
     <div class="apc-charts-grid">
         <div class="apc-chart">
             <div class="apc-chart__title"><?php print $langs->trans('ChartMontantsPerMonth'); ?></div>
-            <canvas id="chartMontants" height="140"></canvas>
+            <div class="chart-container"><canvas id="chartMontants" height="140"></canvas></div>
         </div>
         <div class="apc-chart">
             <div class="apc-chart__title"><?php print $langs->trans('ChartDepensesJustifPerMonth'); ?></div>
-            <canvas id="chartJAV" height="140"></canvas>
+            <div class="chart-container"><canvas id="chartJAV" height="140"></canvas></div>
         </div>
         <div class="apc-chart apc-chart--wide">
             <div class="apc-chart__title"><?php print $langs->trans('ChartStockCategory'); ?></div>
-            <canvas id="chartStock" height="100"></canvas>
+            <div class="chart-container"><canvas id="chartStock" height="100"></canvas></div>
         </div>
     </div>
 </div>

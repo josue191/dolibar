@@ -2,7 +2,7 @@
 /* Copyright (C) 2026 APC ONG Agri-Peace and Child <contact@apc-ong.org>
  *
  * ApcPdfBase — Classe de base pour TOUS les générateurs PDF du module APC.
- * Etend TCPDF (inclus nativement dans Dolibarr : includes/tcpdf/tcpdf.php)
+ * Etend TCPDF (inclus nativement dans Dolibarr : includes/tecnickcom/tcpdf/tcpdf.php)
  *
  * Fournit :
  *   - Header() standard APC (logo + en-tête institutionnel)
@@ -16,7 +16,7 @@
 
 if (! defined('DOL_VERSION')) die('');
 
-require_once DOL_DOCUMENT_ROOT . '/includes/tcpdf/tcpdf.php';
+require_once DOL_DOCUMENT_ROOT . '/includes/tecnickcom/tcpdf/tcpdf.php';
 
 class ApcPdfBase extends TCPDF
 {

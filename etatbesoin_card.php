@@ -1,4 +1,5 @@
 <?php
+
 /* Copyright (C) 2026 APC ONG Agri-Peace and Child <contact@apc-ong.org>
  *
  * etatbesoin_card.php — Fiche Etat de Besoin : création/édition/suppression + onglets
@@ -6,7 +7,7 @@
  */
 
 if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL', '1');
-require '../../main.inc.php';
+$res = 0; if (!$res && file_exists("../main.inc.php")) $res = @include "../main.inc.php"; if (!$res && file_exists("../../main.inc.php")) $res = @include "../../main.inc.php"; if (!$res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
 require_once __DIR__ . '/class/ApcEtatBesoin.class.php';

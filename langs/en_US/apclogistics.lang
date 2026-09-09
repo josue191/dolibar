@@ -1,0 +1,123 @@
+# Module APC Logistics - Translations fr_FR
+APCDashboardTitle = Tableau de bord APC Logistics
+ConfigurationModule = CONFIGURATION DU MODULE
+
+# Boutons d'actions rapides
+NewEtatBesoin = Nouvel état de besoin
+NewDemandePrix = Nouvelle demande de prix
+NewBonCommande = Nouveau bon de commande
+
+# Widgets
+WidgetEtatBesoinPending = États de besoin en attente
+WidgetRequisitionPending = Réquisitions en attente
+WidgetDemandePrixPending = Demandes de prix en attente
+WidgetBonCommandePending = Bons de commande en attente
+WidgetBonReceptionWeek = Bons de réception cette semaine
+WidgetStockCritique = Stocks critiques
+
+# Totaux et graphiques
+APCDashTotalsMonth = Totaux montants du mois en cours
+ChartMontantsPerMonth = Montants des commandes par mois
+ChartDepensesJustifPerMonth = Dépenses à justifier par mois
+ChartStockCategory = État des stocks par catégorie
+
+# Libellés État de Besoin
+TabCard=Fiche
+TabLinks=Fichiers joints
+TabHistory=Historique
+EBRef=Réf. État de besoin
+EBDate=Date de demande
+FieldStatus=Statut
+FieldDateCreation=Date de création
+FieldObjet=Objet / Description
+EBDemandeur=Demandeur
+EBVerificateur=Vérificateur
+EBApprobateur=Approbateur
+StatusDraft=Brouillon
+
+# Tableau des dépenses
+EBColDepenses=Lignes de dépenses
+EBColExpense=Dépense / Article
+EBColBudget=Ligne budgétaire
+EBColCompte=Compte comptable
+EBColMontant=Montant Total
+EBGeneralTotal=Total Général
+NoRecord=Aucune ligne enregistrée
+
+# Section Signature & Actions
+AUDSignature=Signatures et Validations
+PDFGENERATEBTN=Générer le PDF
+MODIFIER=Modifier
+SUPPRIMER=Supprimer
+SIGNER=Signer
+
+EBColDepense=Dépense / Intitulé
+PDFGENERATEBTN=Générer le PDF
+
+PDFGENERATEBTN=Générer le PDF
+PdfGenerateBtn=Générer le PDF
+PDFGenerateBtn=Générer le PDF
+GeneratePDF=Générer le PDF
+
+# Formulaire Demande de Prix (DP)
+DPRef=Réf. Demande de prix
+DPReceivedCotations=Offres reçues
+DPDate=Date de la demande
+DPFournisseur=Fournisseur
+DPAdresse=Adresse
+DPLieuLiv=Lieu de livraison
+DPDateLiv=Date de livraison prévue
+DPContact=Contact / Représentant
+DPTel=Téléphone
+DPEmail=Email
+FieldNotes=Remarques / Conditions
+
+# Tableau des articles
+DPColSpecs=Spécifications techniques
+DPColSpec=Désignation / Spécification
+DPColUnit=Unité
+DPColQty=Quantité
+
+# Envoi au fournisseur
+DPSendToFournisseur=Transmission au fournisseur
+DPSendToFournisseurDesc=Envoyer la demande de cotation directement au fournisseur par email ou imprimer le document.
+DPSENDTOFOURNISSEUR=Envoyer au fournisseur
+TotalQty=Quantité totale
+
+# Formulaire Bon de Commande (BC)
+BCRef=Réf. Bon de commande
+BCDateBC=Date de la commande
+BCFournisseur=Fournisseur
+BCDateLivPrev=Date de livraison prévue
+BCLieuLiv=Lieu de livraison
+BCModeRegl=Mode de règlement
+BCDelaiRegl=Délai de règlement
+BCTauxTVA=Taux de TVA
+BCFKCotation=Offre de prix liée
+
+# Tableau des lignes
+BCColDesc=Désignation / Description
+BCColUnit=Unité
+BCColQty=Quantité
+BCColPu=Prix Unitaire (HT)
+BCColTotalHT=Total HT
+
+BCColTotalHT=Total HT
+BCColPu=Prix Unitaire (HT)
+
+# Totaux & Colonnes
+BCColTotalHT=Total HT
+BCTotalHT=Total HT
+BCTotalTTC=Total TTC
+
+# Signatures (Rôles & En-têtes)
+BCLogisticien=Logisticien APC
+BCCoordinateur=Coordinateur APC
+BCFournisseurSig=Fournisseur
+BCSignLog=Signature Logisticien
+BCSignCoord=Signature Coordinateur
+BCSignFourn=Signature Fournisseur
+
+# Boutons d'action
+CREATEBRFROMBC=Créer Bon de Réception
+CreateBRFromBC=Créer Bon de Réception

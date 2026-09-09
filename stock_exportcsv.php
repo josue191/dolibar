@@ -5,7 +5,7 @@
  */
 
 if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL', '1');
-require '../../main.inc.php';
+$res = 0; if (!$res && file_exists("../main.inc.php")) $res = @include "../main.inc.php"; if (!$res && file_exists("../../main.inc.php")) $res = @include "../../main.inc.php"; if (!$res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';

@@ -50,7 +50,7 @@ class modApcLogistics extends DolibarrModules
         $this->module_position = '90';
 
         // Module label (no space allowed), used if translation string 'ModuleXXXName' not found
-        $this->name = preg_replace('/^mod/i', '', get_class($this));
+        $this->name = 'ApcLogistics';
 
         // Module description (used if translation not found)
         $this->description = "Module natif Dolibarr de Digitalisation Logistique et Achats pour APC ONG. Dematerialisation du cycle documentaire : Etat de besoin, Requisition, Demande de prix, Cotation portail fournisseur, Bon de commande, Bon de reception, Stock, Demande/Justification d'Avance, Demande de paiement. Generation PDF conformes trame APC.";
