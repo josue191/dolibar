@@ -8,10 +8,12 @@
 }
 </style>
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-require_once '/home/iapbdruz/gestion.agri-peaceandchild.org/main.inc.php';
+// Inclusion de Dolibarr : pattern de fallback standard (portable, fonctionne sur cPanel et en local)
+$res = 0;
+if (!$res && file_exists("../main.inc.php")) $res = @include "../main.inc.php";
+if (!$res && file_exists("../../main.inc.php")) $res = @include "../../main.inc.php";
+if (!$res && file_exists("../../../main.inc.php")) $res = @include "../../../main.inc.php";
+if (!$res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
 require_once __DIR__ . '/class/ApcStock.class.php';
