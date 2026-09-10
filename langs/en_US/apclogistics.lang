@@ -391,6 +391,7 @@ CreateBCFromCotation=Create Purchase Order from this quote
 APCSetupIdentite=APC Identity
 APCSetupIdentiteDesc=Header used on all module PDF documents
 APCSetupLogo=APC Logo
+APCSetupLogoDelete=Delete logo (back to placeholder)
 APCSetupHeaderONG=NGO name
 APCSetupHeaderAddr=Address / City
 APCSetupHeaderContact=Email / Phones

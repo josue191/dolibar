@@ -16,6 +16,7 @@ if (!$res && file_exists("../../../main.inc.php")) $res = @include "../../../mai
 if (!$res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
+require_once __DIR__ . '/lib/apclogistics.lib.php';
 require_once __DIR__ . '/class/ApcStock.class.php';
 
 global $db, $conf, $langs, $user;
@@ -164,7 +165,15 @@ llxHeader('', $title, '', '', 0, 0, array(
     '/custom/apclogistics/vendor/chartjs/chart.umd.min.js',
 ), array('/custom/apclogistics/css/apclogistics.css'));
 
-print load_fiche_titre($langs->trans('APCDashboardTitle'), '', 'apclogistics@apclogistics', 0);
+// Titre avec logo APC reel (ou badge vert "AP" en repli)
+$logoAbs = apcLogoPath();
+$logoUrl = apcLogoUrl();
+if ($logoAbs !== '' && $logoUrl !== '') {
+    $titleLogo = '<img src="' . $logoUrl . '" alt="Logo APC" style="max-height:40px; vertical-align:middle; margin-right:10px;">';
+} else {
+    $titleLogo = '<span class="logo" style="display:inline-block;background:#1a8754;color:#fff;border-radius:50%;width:40px;height:40px;line-height:40px;text-align:center;font-weight:900;vertical-align:middle;margin-right:10px;">AP</span>';
+}
+print load_fiche_titre($titleLogo . $langs->trans('APCDashboardTitle'), '', 'apclogistics@apclogistics', 0);
 
 // Lien vers la config (admin uniquement)
 if ($user->admin) {

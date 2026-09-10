@@ -11,6 +11,7 @@ require '../../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
+require_once __DIR__ . '/../lib/apclogistics.lib.php';
 
 $langs->load('admin');
 $langs->load('apclogistics@apclogistics');
@@ -59,19 +60,64 @@ if ($action === 'save' && $user->admin && $token && $_SERVER['REQUEST_METHOD'] =
         else { $error++; setEventMessages('Erreur sauvegarde ' . $k, null, 'errors'); }
     }
 
-    // Upload optionnel logo
+    // Upload optionnel logo (PNG/JPG, max 2 Mo) -> $conf->apclogistics->dir_output/logos/
     if (isset($_FILES['APCLOGISTICS_LOGO']) && is_uploaded_file($_FILES['APCLOGISTICS_LOGO']['tmp_name']) && !$error) {
-        $destDir = DOL_DATA_ROOT . '/apclogistics';
-        if (!is_dir($destDir)) { dol_mkdir($destDir); }
-        $dest = $destDir . '/logo_apc.png';
-        if (move_uploaded_file($_FILES['APCLOGISTICS_LOGO']['tmp_name'], $dest)) {
-            dolibarr_set_const($db, 'APCLOGISTICS_LOGO_PATH', $dest, 'chaine', 0, '', $conf->entity);
-            $conf->global->APCLOGISTICS_LOGO_PATH = $dest;
-            $okCount++;
-        } else {
+        $file = $_FILES['APCLOGISTICS_LOGO'];
+        if ($file['error'] !== UPLOAD_ERR_OK) {
             $error++;
-            setEventMessages('Erreur upload logo', null, 'errors');
+            setEventMessages('Erreur upload logo (code ' . (int)$file['error'] . ')', null, 'errors');
+        } else {
+            $imgInfo = @getimagesize($file['tmp_name']);
+            $mime = $imgInfo ? $imgInfo['mime'] : '';
+            $ext = '';
+            if ($mime === 'image/png') $ext = 'png';
+            elseif ($mime === 'image/jpeg') $ext = 'jpg';
+            if ($ext === '') {
+                $error++;
+                setEventMessages('Logo invalide : PNG ou JPG requis', null, 'errors');
+            } elseif ($file['size'] > 2 * 1024 * 1024) {
+                $error++;
+                setEventMessages('Logo trop volumineux (max 2 Mo)', null, 'errors');
+            } else {
+                $destDir = apcLogoDirOutput() . '/logos';
+                if (!is_dir($destDir)) { dol_mkdir($destDir); }
+                $dest = $destDir . '/logo_apc.' . $ext;
+                if (move_uploaded_file($file['tmp_name'], $dest)) {
+                    // Suppression des anciens fichiers (autre extension)
+                    foreach (array('png', 'jpg', 'jpeg', 'gif') as $oldExt) {
+                        if ($oldExt !== $ext) {
+                            $oldFile = $destDir . '/logo_apc.' . $oldExt;
+                            if (file_exists($oldFile)) @unlink($oldFile);
+                        }
+                    }
+                    // Constante : chemin RELATIF a dir_output (ex. logos/logo_apc.png)
+                    $relPath = 'logos/logo_apc.' . $ext;
+                    dolibarr_set_const($db, 'APCLOGISTICS_LOGO', $relPath, 'chaine', 0, '', $conf->entity);
+                    $conf->global->APCLOGISTICS_LOGO = $relPath;
+                    // Nettoyage de l'ancienne constante (chemin absolu)
+                    dolibarr_del_const($db, 'APCLOGISTICS_LOGO_PATH', $conf->entity);
+                    unset($conf->global->APCLOGISTICS_LOGO_PATH);
+                    $okCount++;
+                } else {
+                    $error++;
+                    setEventMessages('Erreur upload logo', null, 'errors');
+                }
+            }
         }
+    }
+
+    // Suppression du logo (retour au placeholder)
+    if (GETPOST('APCLOGISTICS_LOGO_DELETE', 'int') && !$error) {
+        $destDir = apcLogoDirOutput() . '/logos';
+        foreach (array('png', 'jpg', 'jpeg', 'gif') as $ext) {
+            $f = $destDir . '/logo_apc.' . $ext;
+            if (file_exists($f)) @unlink($f);
+        }
+        dolibarr_del_const($db, 'APCLOGISTICS_LOGO', $conf->entity);
+        dolibarr_del_const($db, 'APCLOGISTICS_LOGO_PATH', $conf->entity);
+        unset($conf->global->APCLOGISTICS_LOGO);
+        unset($conf->global->APCLOGISTICS_LOGO_PATH);
+        $okCount++;
     }
 
     if (!$error) {
@@ -117,13 +163,17 @@ print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><td class="titlefieldcreate" colspan="2"><b>' . $langs->trans('APCSetupIdentite') . '</b> — ' . $langs->trans('APCSetupIdentiteDesc') . '</td></tr>';
 
 print '<tr class="oddeven"><td class="titlefieldcreate">' . $langs->trans('APCSetupLogo') . '</td><td>';
-print '<input type="file" name="APCLOGISTICS_LOGO" accept="image/png,image/jpeg"> <small class="opacitymedium">PNG/JPG — recommandé 1000×1000. Actuel : ';
-if (!empty($conf->global->APCLOGISTICS_LOGO_PATH) && file_exists($conf->global->APCLOGISTICS_LOGO_PATH)) {
+$logoAbs = apcLogoPath();
+$logoUrl = apcLogoUrl();
+if ($logoAbs !== '' && $logoUrl !== '') {
+    print '<img src="' . $logoUrl . '" alt="Logo APC" style="max-height:60px; max-width:140px; border:1px solid #ddd; border-radius:4px; padding:4px; background:#fff; vertical-align:middle; margin-right:10px;">';
     print '<span class="ok">✓ personnalisé</span>';
 } else {
     print '<span class="opacitymedium">placeholder par défaut</span>';
 }
-print '</small></td></tr>';
+print '<br><input type="file" name="APCLOGISTICS_LOGO" accept="image/png,image/jpeg"> <small class="opacitymedium">PNG/JPG — recommandé 1000×1000 — max 2 Mo</small>';
+print '<br><label style="font-weight:normal;"><input type="checkbox" name="APCLOGISTICS_LOGO_DELETE" value="1"> ' . $langs->trans('APCSetupLogoDelete') . '</label>';
+print '</td></tr>';
 
 print '<tr class="oddeven"><td class="titlefieldcreate">' . $langs->trans('APCSetupHeaderONG') . '</td><td>'
     . '<input type="text" size="60" name="APCLOGISTICS_HEADER_ONG" value="' . dol_escape_htmltag($v('APCLOGISTICS_HEADER_ONG','AGRI-PEACE AND CHILD (APC) ASBL')) . '"></td></tr>';

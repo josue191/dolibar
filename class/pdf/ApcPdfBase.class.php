@@ -10,7 +10,9 @@
  *   - startNewPageIfNeeded($h)  — gestion sauts de page + répétition en-tête de tableau
  *   - drawSignatureBox()        — bloc 4 lignes standard Nom/Fonction/Signature/Date
  *
- * Chemin logo : lu depuis $conf->global->APCLOGISTICS_LOGO_PATH sinon placeholder
+ * Chemin logo : lu depuis $conf->global->APCLOGISTICS_LOGO (relatif a dir_output,
+ *               ex. 'logos/logo_apc.png') via lib/apclogistics.lib.php, repli sur
+ *               l'ancienne APCLOGISTICS_LOGO_PATH puis sur le placeholder
  *               $dolibarr_main_url_root/custom/apclogistics/img/apc_logo_placeholder.png
  */
 
@@ -22,6 +24,8 @@ if (file_exists(DOL_DOCUMENT_ROOT . '/includes/tecnickcom/tcpdf/tcpdf.php')) {
 } else {
     require_once DOL_DOCUMENT_ROOT . '/includes/tcpdf/tcpdf.php';
 }
+
+require_once __DIR__ . '/../../lib/apclogistics.lib.php';
 
 class ApcPdfBase extends TCPDF
 {
@@ -56,16 +60,18 @@ class ApcPdfBase extends TCPDF
         parent::__construct($orientation, $unit, $format, $unicode, $encoding, $diskcache, $pdfa);
 
         global $conf;
-        if (!empty($conf->global->APCLOGISTICS_LOGO_PATH) && @file_exists($conf->global->APCLOGISTICS_LOGO_PATH)) {
-            $this->logoPath = $conf->global->APCLOGISTICS_LOGO_PATH;
+        $logoPath = apcLogoPath();
+        if ($logoPath !== '') {
+            $this->logoPath = $logoPath;
         } else {
             $this->logoPath = DOL_DOCUMENT_ROOT . '/custom/apclogistics/img/apc_logo_placeholder.png';
         }
 
-        if (!empty($conf->global->APCLOGISTICS_HEADER_ONGNAME))    $this->headerOngName   = $conf->global->APCLOGISTICS_HEADER_ONGNAME;
-        if (!empty($conf->global->APCLOGISTICS_HEADER_ADDRESS))    $this->headerAddress   = $conf->global->APCLOGISTICS_HEADER_ADDRESS;
-        if (!empty($conf->global->APCLOGISTICS_HEADER_CONTACT))    $this->headerContact   = $conf->global->APCLOGISTICS_HEADER_CONTACT;
-        if (!empty($conf->global->APCLOGISTICS_HEADER_ARRETE))     $this->headerArrete    = $conf->global->APCLOGISTICS_HEADER_ARRETE;
+        // Constantes alignees sur la page de configuration (admin/apclogistics_setup.php)
+        if (!empty($conf->global->APCLOGISTICS_HEADER_ONG))      $this->headerOngName   = $conf->global->APCLOGISTICS_HEADER_ONG;
+        if (!empty($conf->global->APCLOGISTICS_HEADER_ADDR))     $this->headerAddress   = $conf->global->APCLOGISTICS_HEADER_ADDR;
+        if (!empty($conf->global->APCLOGISTICS_HEADER_CONTACT))  $this->headerContact   = $conf->global->APCLOGISTICS_HEADER_CONTACT;
+        if (!empty($conf->global->APCLOGISTICS_HEADER_LEGAL))    $this->headerArrete    = $conf->global->APCLOGISTICS_HEADER_LEGAL;
 
         $this->SetMargins(12, 42, 12);
         $this->SetAutoPageBreak(true, $this->pageBottomMargin);
@@ -86,7 +92,11 @@ class ApcPdfBase extends TCPDF
         // --- Logo (gauche) ---
         $logoW = 26;
         if (@file_exists($this->logoPath)) {
-            $this->Image($this->logoPath, 12, $curY, $logoW, 0, 'PNG', '', '', false, 300, '', false, false, 0, false, false, false);
+            $ext = strtolower(pathinfo($this->logoPath, PATHINFO_EXTENSION));
+            $imgType = 'PNG';
+            if ($ext === 'jpg' || $ext === 'jpeg') $imgType = 'JPEG';
+            elseif ($ext === 'gif') $imgType = 'GIF';
+            $this->Image($this->logoPath, 12, $curY, $logoW, 0, $imgType, '', '', false, 300, '', false, false, 0, false, false, false);
         } else {
             $this->SetFillColor(26, 135, 84);
             $this->Rect(12, $curY, $logoW, 22, 'F');

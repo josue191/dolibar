@@ -391,6 +391,7 @@ CreateBCFromCotation=Creer Bon de Commande depuis cette cotation
 APCSetupIdentite=Identite APC
 APCSetupIdentiteDesc=En-tete utilise sur tous les documents PDF du module
 APCSetupLogo=Logo APC
+APCSetupLogoDelete=Supprimer le logo (retour au placeholder)
 APCSetupHeaderONG=Nom de l'ONG
 APCSetupHeaderAddr=Adresse / Ville
 APCSetupHeaderContact=Email / Telephones
