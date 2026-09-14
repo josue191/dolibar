@@ -165,13 +165,12 @@ llxHeader('', $title, '', '', 0, 0, array(
     '/custom/apclogistics/vendor/chartjs/chart.umd.min.js',
 ), array('/custom/apclogistics/css/apclogistics.css'));
 
-// Titre avec logo APC reel (ou badge vert "AP" en repli)
-$logoAbs = apcLogoPath();
+// Titre : logo personnalisé OU badge vert "AP" (jamais les deux)
 $logoUrl = apcLogoUrl();
-if ($logoAbs !== '' && $logoUrl !== '') {
-    $titleLogo = '<img src="' . $logoUrl . '" alt="Logo APC" style="max-height:40px; vertical-align:middle; margin-right:10px;">';
+if ($logoUrl !== '') {
+    $titleLogo = '<img src="' . $logoUrl . '" alt="Logo APC" style="max-height:50px; vertical-align:middle; margin-right:12px;">';
 } else {
-    $titleLogo = '<span class="logo" style="display:inline-block;background:#1a8754;color:#fff;border-radius:50%;width:40px;height:40px;line-height:40px;text-align:center;font-weight:900;vertical-align:middle;margin-right:10px;">AP</span>';
+    $titleLogo = '<span style="display:inline-block;background:#1a8754;color:#fff;border-radius:50%;width:50px;height:50px;line-height:50px;text-align:center;font-weight:900;font-size:18px;vertical-align:middle;margin-right:12px;">AP</span>';
 }
 print load_fiche_titre($titleLogo . $langs->trans('APCDashboardTitle'), '', 'apclogistics@apclogistics', 0);
 
