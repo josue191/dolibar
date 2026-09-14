@@ -31,7 +31,7 @@ $offset = $page * $limit;
 
 $title = $langs->trans('APCLogisticsMenu_demandeavance');
 llxHeader('', $title, '', '', 0, 0, array(), array('/custom/apclogistics/css/apclogistics.css'));
-print load_fiche_titre($title, '', 'apclogistics@apclogistics', 0);
+print load_fiche_titre($title, '', '', 0);
 
 $sql = "SELECT dav.rowid, dav.ref, dav.objet, dav.compte, dav.mode_paiement, dav.total, dav.status, dav.date_demande, dav.fk_user_demandeur";
 $sql_count = "SELECT COUNT(dav.rowid)";

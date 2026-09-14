@@ -39,7 +39,7 @@ $offset = $page * $limit;
 
 $title = $langs->trans('APCLogisticsMenu_requisition');
 llxHeader('', $title, '', '', 0, 0, array(), array('/custom/apclogistics/css/apclogistics.css'));
-print load_fiche_titre($title, '', 'apclogistics@apclogistics', 0);
+print load_fiche_titre($title, '', '', 0);
 
 $sql = "SELECT rq.rowid, rq.ref, rq.date_demande, rq.date_sortie, rq.objet, rq.status,"
      . " rq.demandeur_nom, rq.magasinier_nom, rq.fk_etatbesoin";

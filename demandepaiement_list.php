@@ -33,7 +33,7 @@ $offset = $page * $limit;
 
 $title = $langs->trans('APCLogisticsMenu_demandepaiement');
 llxHeader('', $title, '', '', 0, 0, array(), array('/custom/apclogistics/css/apclogistics.css'));
-print load_fiche_titre($title, '', 'apclogistics@apclogistics', 0);
+print load_fiche_titre($title, '', '', 0);
 
 $sql = "SELECT dpai.rowid, dpai.ref, dpai.objet, dpai.cas_usage, dpai.mode_paiement, dpai.compte, dpai.beneficiaire_nom, dpai.total, dpai.status, dpai.date_dpai";
 $sql_count = "SELECT COUNT(dpai.rowid)";

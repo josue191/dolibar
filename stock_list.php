@@ -39,7 +39,7 @@ $offset = $page * $limit;
 
 $title = $langs->trans('APCLogisticsMenu_stock');
 llxHeader('', $title, '', '', 0, 0, array(), array('/custom/apclogistics/css/apclogistics.css'));
-print load_fiche_titre($title, '', 'apclogistics@apclogistics', 0);
+print load_fiche_titre($title, '', '', 0);
 
 $formother = new FormOther($db);
 $form = new Form($db);

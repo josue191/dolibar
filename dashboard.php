@@ -172,7 +172,7 @@ if ($logoUrl !== '') {
 } else {
     $titleLogo = '<span style="display:inline-block;background:#1a8754;color:#fff;border-radius:50%;width:50px;height:50px;line-height:50px;text-align:center;font-weight:900;font-size:18px;vertical-align:middle;margin-right:12px;">AP</span>';
 }
-print load_fiche_titre($titleLogo . $langs->trans('APCDashboardTitle'), '', 'apclogistics@apclogistics', 0);
+print load_fiche_titre($titleLogo . $langs->trans('APCDashboardTitle'), '', '', 0);
 
 // Lien vers la config (admin uniquement)
 if ($user->admin) {

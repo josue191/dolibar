@@ -136,7 +136,7 @@ $title = $langs->trans('ModuleSetup') . ' - APC Logistics & Procurement';
 llxHeader('', $title, '', '', 0, 0, array(), array());
 
 $linkback = '<a href="'.DOL_URL_ROOT.'/admin/modules.php?mode=common">'.$langs->trans("BackToModuleList").'</a>';
-print load_fiche_titre($title, $linkback, 'setup', 0, '', '', 'apclogistics@apclogistics');
+print load_fiche_titre($title, $linkback, 'setup', 0, '', '', '');
 
 $h = 0;
 $head[$h][0] = DOL_URL_ROOT . '/custom/apclogistics/admin/apclogistics_setup.php';

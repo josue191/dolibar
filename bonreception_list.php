@@ -40,7 +40,7 @@ $offset = $page * $limit;
 
 $title = $langs->trans('APCLogisticsMenu_br');
 llxHeader('', $title, '', '', 0, 0, array(), array('/custom/apclogistics/css/apclogistics.css'));
-print load_fiche_titre($title, '', 'apclogistics@apclogistics', 0);
+print load_fiche_titre($title, '', '', 0);
 
 $sql = "SELECT br.rowid, br.ref, br.date_reception, br.fournisseur_nom, br.ref_bdl, br.fk_boncommande, br.total_qte_commandee, br.total_qte_recue, br.total_ecart, br.status, bc.ref AS bc_ref";
 $sql_count = "SELECT COUNT(br.rowid)";

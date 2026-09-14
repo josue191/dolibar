@@ -32,7 +32,7 @@ $offset = $page * $limit;
 
 $title = $langs->trans('APCLogisticsMenu_justifavance');
 llxHeader('', $title, '', '', 0, 0, array(), array('/custom/apclogistics/css/apclogistics.css'));
-print load_fiche_titre($title, '', 'apclogistics@apclogistics', 0);
+print load_fiche_titre($title, '', '', 0);
 
 $sql = "SELECT jav.rowid, jav.ref, jav.objet, jav.fk_demande_avance, jav.total_depense, jav.prise_avance, jav.ecart, jav.status, jav.date_jav, dav.ref as dav_ref";
 $sql_count = "SELECT COUNT(jav.rowid)";
