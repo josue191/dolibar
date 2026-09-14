@@ -4,26 +4,30 @@
  * lib/apclogistics.lib.php — Helpers partages du module APC Logistics.
  *
  * Resolution du logo APC :
- *   - Constante APCLOGISTICS_LOGO      : chemin RELATIF a $conf->apclogistics->dir_output
- *                                        (ex. 'logos/logo_apc.png') — nouveau format.
+ *   - Stockage web : DOL_DOCUMENT_ROOT/custom/apclogistics/img/ (accessible via
+ *                    DOL_URL_ROOT/custom/apclogistics/img/...).
+ *   - Constante APCLOGISTICS_LOGO      : nom de fichier (ex. 'logo_apc.png').
  *   - Constante APCLOGISTICS_LOGO_PATH : chemin ABSOLU — ancien format (retro-compat).
  */
 
 if (! defined('DOL_VERSION')) die('');
 
 /**
- * Repertoire de sortie du module (DOL_DATA_ROOT/apclogistics/documents).
+ * Repertoire web du module pour le logo (DOL_DOCUMENT_ROOT/custom/apclogistics/img).
+ * Cree le dossier s'il n'existe pas.
  * @return string
  */
-function apcLogoDirOutput()
+function apcLogoDir()
 {
-    global $conf;
-    if (!empty($conf->apclogistics->dir_output)) return $conf->apclogistics->dir_output;
-    return DOL_DATA_ROOT . '/apclogistics/documents';
+    $dir = DOL_DOCUMENT_ROOT . '/custom/apclogistics/img';
+    if (!is_dir($dir)) {
+        dol_mkdir($dir);
+    }
+    return $dir;
 }
 
 /**
- * Chemin RELATIF du logo (ex. 'logos/logo_apc.png') depuis la constante
+ * Nom de fichier du logo (ex. 'logo_apc.png') depuis la constante
  * APCLOGISTICS_LOGO, sinon ''.
  * @return string
  */
@@ -38,7 +42,7 @@ function apcLogoRelative()
 
 /**
  * Chemin ABSOLU du logo s'il existe sur le serveur, sinon ''.
- * Priorite : APCLOGISTICS_LOGO (relatif) puis APCLOGISTICS_LOGO_PATH (absolu, legacy).
+ * Priorite : APCLOGISTICS_LOGO (img/) puis APCLOGISTICS_LOGO_PATH (absolu, legacy).
  * @return string
  */
 function apcLogoPath()
@@ -46,7 +50,7 @@ function apcLogoPath()
     global $conf;
     $rel = apcLogoRelative();
     if ($rel !== '') {
-        $abs = apcLogoDirOutput() . '/' . $rel;
+        $abs = apcLogoDir() . '/' . $rel;
         if (@file_exists($abs)) return $abs;
     }
     if (!empty($conf->global->APCLOGISTICS_LOGO_PATH) && @file_exists($conf->global->APCLOGISTICS_LOGO_PATH)) {
@@ -64,11 +68,14 @@ function apcLogoUrl()
     global $conf;
     $rel = apcLogoRelative();
     if ($rel !== '') {
-        return DOL_URL_ROOT . '/documents/apclogistics/documents/' . $rel;
+        $abs = apcLogoDir() . '/' . $rel;
+        if (@file_exists($abs)) {
+            return DOL_URL_ROOT . '/custom/apclogistics/img/' . $rel;
+        }
     }
     if (!empty($conf->global->APCLOGISTICS_LOGO_PATH)) {
         $abs = $conf->global->APCLOGISTICS_LOGO_PATH;
-        if (strpos($abs, DOL_DATA_ROOT) === 0) {
+        if (@file_exists($abs) && strpos($abs, DOL_DATA_ROOT) === 0) {
             return DOL_URL_ROOT . '/documents/' . substr($abs, strlen(DOL_DATA_ROOT) + 1);
         }
     }

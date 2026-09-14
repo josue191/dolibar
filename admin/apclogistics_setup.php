@@ -60,7 +60,7 @@ if ($action === 'save' && $user->admin && $token && $_SERVER['REQUEST_METHOD'] =
         else { $error++; setEventMessages('Erreur sauvegarde ' . $k, null, 'errors'); }
     }
 
-    // Upload optionnel logo (PNG/JPG, max 2 Mo) -> $conf->apclogistics->dir_output/logos/
+    // Upload optionnel logo (PNG/JPG, max 2 Mo) -> DOL_DOCUMENT_ROOT/custom/apclogistics/img/
     if (isset($_FILES['APCLOGISTICS_LOGO']) && is_uploaded_file($_FILES['APCLOGISTICS_LOGO']['tmp_name']) && !$error) {
         $file = $_FILES['APCLOGISTICS_LOGO'];
         if ($file['error'] !== UPLOAD_ERR_OK) {
@@ -79,8 +79,7 @@ if ($action === 'save' && $user->admin && $token && $_SERVER['REQUEST_METHOD'] =
                 $error++;
                 setEventMessages('Logo trop volumineux (max 2 Mo)', null, 'errors');
             } else {
-                $destDir = apcLogoDirOutput() . '/logos';
-                if (!is_dir($destDir)) { dol_mkdir($destDir); }
+                $destDir = apcLogoDir();
                 $dest = $destDir . '/logo_apc.' . $ext;
                 if (move_uploaded_file($file['tmp_name'], $dest)) {
                     // Suppression des anciens fichiers (autre extension)
@@ -90,10 +89,10 @@ if ($action === 'save' && $user->admin && $token && $_SERVER['REQUEST_METHOD'] =
                             if (file_exists($oldFile)) @unlink($oldFile);
                         }
                     }
-                    // Constante : chemin RELATIF a dir_output (ex. logos/logo_apc.png)
-                    $relPath = 'logos/logo_apc.' . $ext;
-                    dolibarr_set_const($db, 'APCLOGISTICS_LOGO', $relPath, 'chaine', 0, '', $conf->entity);
-                    $conf->global->APCLOGISTICS_LOGO = $relPath;
+                    // Constante : nom de fichier (ex. logo_apc.png) — URL = DOL_URL_ROOT/custom/apclogistics/img/<fichier>
+                    $fileName = 'logo_apc.' . $ext;
+                    dolibarr_set_const($db, 'APCLOGISTICS_LOGO', $fileName, 'chaine', 0, '', $conf->entity);
+                    $conf->global->APCLOGISTICS_LOGO = $fileName;
                     // Nettoyage de l'ancienne constante (chemin absolu)
                     dolibarr_del_const($db, 'APCLOGISTICS_LOGO_PATH', $conf->entity);
                     unset($conf->global->APCLOGISTICS_LOGO_PATH);
@@ -108,7 +107,7 @@ if ($action === 'save' && $user->admin && $token && $_SERVER['REQUEST_METHOD'] =
 
     // Suppression du logo (retour au placeholder)
     if (GETPOST('APCLOGISTICS_LOGO_DELETE', 'int') && !$error) {
-        $destDir = apcLogoDirOutput() . '/logos';
+        $destDir = apcLogoDir();
         foreach (array('png', 'jpg', 'jpeg', 'gif') as $ext) {
             $f = $destDir . '/logo_apc.' . $ext;
             if (file_exists($f)) @unlink($f);
