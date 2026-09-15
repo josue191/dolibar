@@ -81,6 +81,13 @@ if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $toke
                     $ln->create($user);
                 }
             }
+            // Generer automatiquement le PDF (mode 'F' = fichier, pas inline)
+            try {
+                $pdfGen = new pdf_etatbesoin_apc($db);
+                $pdfGen->write_file($object, $langs, '', 'F');
+            } catch (Exception $e) {
+                // Ignorer erreur generation — le PDF reste generable via le bouton
+            }
             header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
             exit;
         } else { setEventMessages($object->error, $object->errors, 'errors'); }
@@ -350,7 +357,7 @@ if ($action === 'create' || $action === 'edit') {
 
     // ======= BOUTONS ACTIONS =======
     print '<div class="tabsAction" style="margin-top:24px;">';
-    print '<a class="butAction" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=generate_pdf&token=' . newToken() . '">' . $langs->trans('PDFGenerateBtn') . '</a>';
+    print '<a class="butAction" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=generate_pdf&token=' . newToken() . '">' . $langs->trans('GeneratePDF') . '</a>';
     if ($permissiontoedit) print '<a class="butAction" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=edit">' . $langs->trans('Modify') . '</a>';
     if ($permissiontodelete) print '<a class="butActionDelete" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=delete">' . $langs->trans('Delete') . '</a>';
     print '</div>';

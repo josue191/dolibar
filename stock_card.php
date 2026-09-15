@@ -183,7 +183,7 @@ if (empty($movements)) {
 print '</tbody></table></div>';
 
 print '<div class="tabsAction" style="margin-top:24px;">';
-print '<a class="butAction" href="' . DOL_URL_ROOT . '/custom/apclogistics/stock_card.php?id=' . $object->id . '&action=generate_pdf&token=' . newToken() . '">' . $langs->trans('PDFGenerateBtn') . '</a>';
+print '<a class="butAction" href="' . DOL_URL_ROOT . '/custom/apclogistics/stock_card.php?id=' . $object->id . '&action=generate_pdf&token=' . newToken() . '">' . $langs->trans('GeneratePDF') . '</a>';
 if ($permissiontoedit && !$editing) print '<a class="butAction" href="' . DOL_URL_ROOT . '/custom/apclogistics/stock_card.php?id=' . $object->id . '&action=edit">' . $langs->trans('Modify') . '</a>';
 print '<a class="butAction" href="' . DOL_URL_ROOT . '/custom/apclogistics/stock_list.php">' . $langs->trans('BackToList') . '</a>';
 print '</div>';

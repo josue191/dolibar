@@ -110,9 +110,9 @@ abstract class ApcObjectBase extends CommonObject
 
         $oldJson = null;
 
-        if (defined('APC_TRACE')) { echo "[TRACE]   avant parent::create\n"; @flush(); }
-        $res = parent::create($user, $notrigger);
-        if (defined('APC_TRACE')) { echo "[TRACE]   apres parent::create res=" . var_export($res, true) . " id=" . $this->id . "\n"; @flush(); }
+        if (defined('APC_TRACE')) { echo "[TRACE]   avant parent::createCommon\n"; @flush(); }
+        $res = parent::createCommon($user, $notrigger);
+        if (defined('APC_TRACE')) { echo "[TRACE]   apres parent::createCommon res=" . var_export($res, true) . " id=" . $this->id . "\n"; @flush(); }
         if ($res > 0) {
             if (defined('APC_TRACE')) { echo "[TRACE]   avant audit log\n"; @flush(); }
             ApcAuditLog::log(
@@ -151,9 +151,9 @@ abstract class ApcObjectBase extends CommonObject
             if (defined('APC_TRACE')) { echo "[TRACE]   apres clone/fetch\n"; @flush(); }
         } catch (Exception $e) { $old = null; }
 
-        if (defined('APC_TRACE')) { echo "[TRACE]   avant parent::update\n"; @flush(); }
-        $res = parent::update($user, $notrigger, $allowemptyref);
-        if (defined('APC_TRACE')) { echo "[TRACE]   apres parent::update res=" . var_export($res, true) . "\n"; @flush(); }
+        if (defined('APC_TRACE')) { echo "[TRACE]   avant parent::updateCommon\n"; @flush(); }
+        $res = parent::updateCommon($user, $notrigger, $allowemptyref);
+        if (defined('APC_TRACE')) { echo "[TRACE]   apres parent::updateCommon res=" . var_export($res, true) . "\n"; @flush(); }
         if ($res > 0) {
             if (defined('APC_TRACE')) { echo "[TRACE]   avant audit log\n"; @flush(); }
             ApcAuditLog::log(
@@ -175,7 +175,7 @@ abstract class ApcObjectBase extends CommonObject
         $type = $this->element;
         $id = (int)$this->id;
 
-        $res = parent::delete($user, $notrigger);
+        $res = parent::deleteCommon($user, $notrigger);
         if ($res > 0) {
             ApcAuditLog::log($type, $id, 'DELETE', ($user ? (int)$user->id : 0), $old, null);
         }
@@ -288,6 +288,30 @@ abstract class ApcTableLineBase extends CommonObject
             }
         }
         return $lines;
+    }
+
+    /**
+     * Delegue a CommonObject::createCommon() — Dolibarr 17/20 n'a pas de create().
+     */
+    public function create($user, $notrigger = 0)
+    {
+        return parent::createCommon($user, $notrigger);
+    }
+
+    /**
+     * Delegue a CommonObject::updateCommon() — Dolibarr 17/20 n'a pas de update().
+     */
+    public function update($user = 0, $notrigger = 0, $allowemptyref = 0)
+    {
+        return parent::updateCommon($user, $notrigger, $allowemptyref);
+    }
+
+    /**
+     * Delegue a CommonObject::deleteCommon() — Dolibarr 17/20 n'a pas de delete().
+     */
+    public function delete($user, $notrigger = 0)
+    {
+        return parent::deleteCommon($user, $notrigger);
     }
 
     public function deleteAllForParent($user, $parentId)

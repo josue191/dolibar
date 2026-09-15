@@ -82,7 +82,7 @@ class pdf_etatbesoin_apc
         $pdf->MultiCell($usableW - 28, 5.5, $object->objet, 0, 'L', false);
         $pdf->Ln(2);
 
-        if (!empty($object->demandeur_nom) || !empty($object->fk_user_demandeur)) {
+        if (!empty($object->signataire_nom_d) || !empty($object->fk_user_demandeur)) {
             $nom = $object->signataire_nom_d ?: '';
             $pdf->SetFont('helvetica', 'B', 10);
             $pdf->Cell(28, 5.5, 'Demandeur : ', 0, 0, 'L', false);
