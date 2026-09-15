@@ -86,6 +86,14 @@ abstract class ApcObjectBase extends CommonObject
     }
 
     /**
+     * Delegue a CommonObject::fetchCommon() — Dolibarr 17/20 n'a pas de fetch().
+     */
+    public function fetch($id, $ref = null, $morewhere = '', $noextrafields = 0)
+    {
+        return parent::fetchCommon($id, $ref, $morewhere, $noextrafields);
+    }
+
+    /**
      * Surcharge CommonObject pour :
      *  - ne pas accepter modification de $ref si verrouille
      *  - logguer audit log auto pour create/update/delete
@@ -288,6 +296,14 @@ abstract class ApcTableLineBase extends CommonObject
             }
         }
         return $lines;
+    }
+
+    /**
+     * Delegue a CommonObject::fetchCommon() — Dolibarr 17/20 n'a pas de fetch().
+     */
+    public function fetch($id, $ref = null, $morewhere = '', $noextrafields = 0)
+    {
+        return parent::fetchCommon($id, $ref, $morewhere, $noextrafields);
     }
 
     /**
