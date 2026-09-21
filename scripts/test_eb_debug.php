@@ -47,7 +47,42 @@ foreach ($tables_to_check as $tblName => $label) {
     } else {
         echo "   MANQUANT: $fullTbl ($label)\n";
         echo "   -> Tentative de creation...\n";
-        if ($tblName === 'apclogistics_etatbesoin_lines') {
+        if ($tblName === 'apclogistics_etatbesoin') {
+            $sql = "CREATE TABLE IF NOT EXISTS " . $fullTbl . " (
+                rowid INT AUTO_INCREMENT PRIMARY KEY,
+                entity INT DEFAULT 1 NOT NULL,
+                ref VARCHAR(64) NOT NULL UNIQUE,
+                ref_ext VARCHAR(128) DEFAULT NULL,
+                date_eb DATE NOT NULL,
+                objet VARCHAR(255) NOT NULL,
+                total_ht DECIMAL(24,8) DEFAULT 0,
+                total_ttc DECIMAL(24,8) DEFAULT 0,
+                status SMALLINT NOT NULL DEFAULT 0,
+                note_public TEXT DEFAULT NULL,
+                note_private TEXT DEFAULT NULL,
+                fk_user_demandeur INT DEFAULT NULL,
+                date_signature_demandeur DATETIME DEFAULT NULL,
+                signataire_nom_d VARCHAR(128) DEFAULT NULL,
+                signataire_fonction_d VARCHAR(128) DEFAULT NULL,
+                fk_user_verificateur INT DEFAULT NULL,
+                date_signature_verif DATETIME DEFAULT NULL,
+                signataire_nom_v VARCHAR(128) DEFAULT NULL,
+                signataire_fonction_v VARCHAR(128) DEFAULT NULL,
+                fk_user_approbateur INT DEFAULT NULL,
+                date_signature_approb DATETIME DEFAULT NULL,
+                signataire_nom_a VARCHAR(128) DEFAULT NULL,
+                signataire_fonction_a VARCHAR(128) DEFAULT NULL,
+                extraparams TEXT DEFAULT NULL,
+                date_creation DATETIME DEFAULT NULL,
+                tms TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                fk_user_creat INT DEFAULT NULL,
+                fk_user_modif INT DEFAULT NULL,
+                KEY idx_apclog_eb_status (status),
+                KEY idx_apclog_eb_date (date_eb),
+                KEY idx_apclog_eb_demandeur (fk_user_demandeur),
+                KEY idx_apclog_eb_entity (entity)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+        } elseif ($tblName === 'apclogistics_etatbesoin_lines') {
             $sql = "CREATE TABLE IF NOT EXISTS " . $fullTbl . " (
                 rowid INT AUTO_INCREMENT PRIMARY KEY,
                 entity INT DEFAULT 1 NOT NULL,
