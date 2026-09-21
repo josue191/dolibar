@@ -348,16 +348,35 @@ if ($action === 'create' || $action === 'edit') {
         }
     }
 
-    // ======= SECTION DOCUMENTS PDF (nativ Dolibarr showdocuments) =======
-    require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
-    $formfile = new FormFile($db);
-    $upload_dir = $conf->apclogistics->dir_output . '/etatbesoin/' . dol_sanitizeFileName($object->ref);
-    $filedir    = $conf->apclogistics->dir_output . '/etatbesoin/' . dol_sanitizeFileName($object->ref) . '/';
-    $urlsource  = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
-    $genallowed  = $permissiontocreate;
-    $delallowed  = $permissiontoedit;
-    print '<h3 style="margin-top:18px;">' . $langs->trans('Documents') . '</h3>';
-    print $formfile->showdocuments('apclogistics:EtatBesoin', $object->ref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf);
+    /*
+     * Zone de gestion des documents rattachés (PDF)
+     */
+    if ($object->id > 0 && $action != 'create') {
+        print '<br>';
+
+        require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
+        $formfile = new FormFile($db);
+
+        $upload_dir = $conf->apclogistics->dir_output . '/etatbesoin/' . dol_sanitizeFileName($object->ref);
+        $urlsource  = $_SERVER["PHP_SELF"] . "?id=" . $object->id;
+
+        $delallowed = $user->hasRight('apclogistics', 'etatbesoin', 'delete') || $user->admin;
+
+        // On désactive le moteur de génération automatique (0) pour éviter l'erreur de classe
+        print $formfile->showdocuments(
+            'apclogistics',
+            $object->ref,
+            $upload_dir,
+            $urlsource,
+            0,                  // $genallowed mis à 0 temporairement
+            $delallowed,
+            '',                 // $modelselected vide
+            1,
+            0,
+            0,
+            280
+        );
+    }
 
     // ======= BOUTONS ACTIONS =======
     print '<div class="tabsAction" style="margin-top:24px;">';
