@@ -19,6 +19,64 @@ global $db, $conf, $langs, $user;
 $langs->load('apclogistics@apclogistics');
 $langs->load('main');
 
+// =====================================================
+// AUTO-CREATE MISSING TABLES (fix cPanel deployment)
+// =====================================================
+function apc_ensure_tables($db) {
+    $prefix = MAIN_DB_PREFIX;
+
+    // Table lignes etat de besoin
+    $tbl = $prefix . 'apclogistics_etatbesoin_lines';
+    $check = $db->query("SHOW TABLES LIKE '" . $tbl . "'");
+    if ($check && $db->num_rows($check) == 0) {
+        $sql = "CREATE TABLE IF NOT EXISTS " . $tbl . " (
+            rowid INT AUTO_INCREMENT PRIMARY KEY,
+            entity INT DEFAULT 1 NOT NULL,
+            fk_etatbesoin INT NOT NULL,
+            no_ligne INT NOT NULL DEFAULT 0,
+            depense VARCHAR(255) NOT NULL,
+            projet_or_budget VARCHAR(255) DEFAULT NULL,
+            budget_code VARCHAR(64) DEFAULT NULL,
+            compte VARCHAR(32) DEFAULT NULL,
+            montant DECIMAL(24,8) NOT NULL DEFAULT 0,
+            fk_product INT DEFAULT NULL,
+            extraparams TEXT DEFAULT NULL,
+            date_creation DATETIME DEFAULT NULL,
+            tms TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            fk_user_creat INT DEFAULT NULL,
+            fk_user_modif INT DEFAULT NULL,
+            KEY idx_apclog_ebl_main (fk_etatbesoin),
+            KEY idx_apclog_ebl_prod (fk_product)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+        $db->query($sql);
+    }
+
+    // Table audit log
+    $tbl2 = $prefix . 'apclogistics_auditlog';
+    $check2 = $db->query("SHOW TABLES LIKE '" . $tbl2 . "'");
+    if ($check2 && $db->num_rows($check2) == 0) {
+        $sql2 = "CREATE TABLE IF NOT EXISTS " . $tbl2 . " (
+            rowid INT AUTO_INCREMENT PRIMARY KEY,
+            entity INT DEFAULT 1 NOT NULL,
+            entity_type VARCHAR(32) NOT NULL,
+            entity_id INT NOT NULL,
+            action_type VARCHAR(32) NOT NULL,
+            action_details TEXT DEFAULT NULL,
+            old_values_json TEXT DEFAULT NULL,
+            new_values_json TEXT DEFAULT NULL,
+            fk_user INT DEFAULT NULL,
+            user_login VARCHAR(64) DEFAULT NULL,
+            ip_address VARCHAR(64) DEFAULT NULL,
+            http_user_agent VARCHAR(255) DEFAULT NULL,
+            date_action DATETIME NOT NULL,
+            KEY idx_apclog_aud_type (entity_type),
+            KEY idx_apclog_aud_id (entity_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+        $db->query($sql2);
+    }
+}
+apc_ensure_tables($db);
+
 $id      = (int) GETPOST('id', 'int');
 $ref     = GETPOST('ref', 'alpha');
 $action  = GETPOST('action', 'aZ');
@@ -70,11 +128,18 @@ if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $toke
         $res = $object->create($user);
         if ($res > 0) {
             $lignes = GETPOST('lines', 'array');
+            $lineErrors = array();
             if (is_array($lignes)) {
                 foreach ($lignes as $line) {
                     if (empty($line['depense'])) continue;
-                    $object->addline($user, $line['depense'], $line['projet_or_budget'], $line['compte'], (float) str_replace(',', '.', $line['montant']));
+                    $addRes = $object->addline($user, $line['depense'], $line['projet_or_budget'], $line['compte'], (float) str_replace(',', '.', $line['montant']));
+                    if ($addRes <= 0) {
+                        $lineErrors[] = $line['depense'] . ': ' . $object->error;
+                    }
                 }
+            }
+            if (!empty($lineErrors)) {
+                setEventMessages('Lignes non enregistrées : ' . implode(' | ', $lineErrors), null, 'errors');
             }
             header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
             exit;
@@ -99,11 +164,18 @@ if ($action === 'update' && $permissiontoedit && !$error && $user->valid && $tok
         $ln = new ApcEtatBesoinLine($db);
         $ln->deleteAllForParent($user, $object->id);
         $lignes = GETPOST('lines', 'array');
+        $lineErrors = array();
         if (is_array($lignes)) {
             foreach ($lignes as $line) {
                 if (empty($line['depense'])) continue;
-                $object->addline($user, $line['depense'], $line['projet_or_budget'], $line['compte'], (float) str_replace(',', '.', $line['montant']));
+                $addRes = $object->addline($user, $line['depense'], $line['projet_or_budget'], $line['compte'], (float) str_replace(',', '.', $line['montant']));
+                if ($addRes <= 0) {
+                    $lineErrors[] = $line['depense'] . ': ' . $object->error;
+                }
             }
+        }
+        if (!empty($lineErrors)) {
+            setEventMessages('Lignes non enregistrées : ' . implode(' | ', $lineErrors), null, 'errors');
         }
         // Recalculer le total
         $object->calculateTotals();
@@ -128,9 +200,25 @@ if ($action === 'confirm_delete' && $confirm === 'yes' && $permissiontodelete &&
 
 // ---- GÉNÉRER PDF ----
 if ($action === 'generate_pdf' && $id > 0 && $token && $permissiontoread) {
+    // Vérifier TCPDF
+    $tcpdf_found = false;
+    if (file_exists(DOL_DOCUMENT_ROOT . '/includes/tecnickcom/tcpdf/tcpdf.php')) $tcpdf_found = true;
+    elseif (file_exists(DOL_DOCUMENT_ROOT . '/includes/tcpdf/tcpdf.php')) $tcpdf_found = true;
+
+    if (!$tcpdf_found) {
+        setEventMessages('TCPDF non trouvé. Vérifiez : ' . DOL_DOCUMENT_ROOT . '/includes/tecnickcom/tcpdf/', null, 'errors');
+        header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
+        exit;
+    }
+
     try {
         $pdfGen = new pdf_etatbesoin_apc($db);
-        $pdfGen->write_file($object, $langs, '', 'I');
+        $result = $pdfGen->write_file($object, $langs, '', 'I');
+        if ($result === 0) {
+            setEventMessages('Erreur génération PDF', null, 'errors');
+            header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
+            exit;
+        }
     } catch (Exception $e) {
         setEventMessages('Erreur génération PDF : ' . $e->getMessage(), null, 'errors');
         header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);

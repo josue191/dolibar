@@ -99,10 +99,20 @@ class ApcEtatBesoin extends ApcObjectBase
         $ln->projet_or_budget = $projet_or_budget;
         $ln->compte        = $compte;
         $ln->montant       = (float) $montant;
+        $ln->date_creation = date('Y-m-d H:i:s');
+        $ln->fk_user_creat = $user->id;
         $res = $ln->create($user);
         if ($res > 0) {
             $this->lines[] = $ln;
             $this->calculateTotals();
+            // Mettre à jour le total_ht dans la table entête
+            $sql = "UPDATE " . MAIN_DB_PREFIX . $this->table_element
+                 . " SET total_ht = " . (float) $this->total_ht
+                 . ", total_ttc = " . (float) $this->total_ttc
+                 . " WHERE rowid = " . (int) $this->id;
+            $this->db->query($sql);
+        } else {
+            $this->error = 'addline failed: ' . (isset($ln->error) ? $ln->error : 'unknown') . ' | DB: ' . $this->db->lasterror();
         }
         return $res;
     }
