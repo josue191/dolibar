@@ -10,11 +10,15 @@ $res = 0; if (!$res && file_exists("../main.inc.php")) $res = @include "../main.
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
 require_once __DIR__ . '/class/ApcEtatBesoin.class.php';
+require_once __DIR__ . '/class/apc_init.php';
 
 global $db, $conf, $langs, $user;
 
 $langs->load('apclogistics@apclogistics');
 $langs->load('main');
+
+// Auto-create missing tables
+apc_ensure_tables($db);
 
 if (empty($user->rights->apclogistics->etatbesoin->read)) accessforbidden();
 
