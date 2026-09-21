@@ -218,6 +218,15 @@ class modApcLogistics extends DolibarrModules
                 'current',
                 1,
             ),
+            14 => array(
+                'APCLOGISTICS_PDF_MODEL_EB',
+                'chaine',
+                'etatbesoin_apc',
+                'Modele PDF pour Etat de Besoin (showdocuments)',
+                0,
+                'current',
+                1,
+            ),
         );
 
         // Array to add new pages in new tabs

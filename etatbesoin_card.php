@@ -13,6 +13,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
 require_once __DIR__ . '/class/ApcEtatBesoin.class.php';
 require_once __DIR__ . '/class/apc_links.lib.php';
 require_once __DIR__ . '/class/pdf/pdf_etatbesoin_apc.modules.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
 
 global $db, $conf, $langs, $user;
 
@@ -54,10 +55,11 @@ if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $toke
     if (!empty($conf->dol_url_root)) $backtopage = $conf->dol_url_root . '/custom/apclogistics/etatbesoin_list.php';
     $object->date_eb = dol_mktime(12,0,0, GETPOST('date_ebmonth', 'int'), GETPOST('date_ebday', 'int'), GETPOST('date_ebyear', 'int'));
     $object->date_eb = $db->idate($object->date_eb);
-    $object->objet = GETPOST('objet', 'alphanohtml');
-    $object->signataire_nom_d = GETPOST('signataire_nom_d', 'alphanohtml');
-    $object->signataire_fonction_d = GETPOST('signataire_fonction_d', 'alphanohtml');
-    $object->note_public = GETPOST('note_public', 'alphanohtml');
+    // Mapping noms formulaire → champs DB (conforme spec utilisateur)
+    $object->objet                = GETPOST('description', 'alphanohtml');
+    $object->signataire_nom_d     = GETPOST('demandeur_nom', 'alphanohtml');
+    $object->signataire_fonction_d = GETPOST('fonction', 'alphanohtml');
+    $object->note_public          = GETPOST('remarques', 'alphanohtml');
 
     if (empty($object->objet)) { setEventMessages($langs->trans('ErrorFieldRequired', $langs->trans('FieldObjet')), null, 'errors'); $error++; }
     if (empty($object->date_eb) || $object->date_eb === '1970-01-01') { setEventMessages($langs->trans('ErrorFieldRequired', $langs->trans('EBDate')), null, 'errors'); $error++; }
@@ -65,28 +67,19 @@ if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $toke
     if (!$error) {
         $res = $object->create($user);
         if ($res > 0) {
-            // Traitement lignes
+            // Ajout des lignes via addline() (conforme spec Dolibarr)
             $lignes = GETPOST('lines', 'array');
-            $no = 1;
             if (is_array($lignes)) {
                 foreach ($lignes as $line) {
                     if (empty($line['depense'])) continue;
-                    $ln = new ApcEtatBesoinLine($db);
-                    $ln->fk_etatbesoin = $object->id;
-                    $ln->no_ligne = $no++;
-                    $ln->depense = $line['depense'];
-                    $ln->projet_or_budget = $line['projet_or_budget'];
-                    $ln->compte = $line['compte'];
-                    $ln->montant = (float)str_replace(',', '.', $line['montant']);
-                    $ln->create($user);
+                    $object->addline(
+                        $user,
+                        $line['depense'],
+                        $line['projet_or_budget'],
+                        $line['compte'],
+                        (float) str_replace(',', '.', $line['montant'])
+                    );
                 }
-            }
-            // Generer automatiquement le PDF (mode 'F' = fichier, pas inline)
-            try {
-                $pdfGen = new pdf_etatbesoin_apc($db);
-                $pdfGen->write_file($object, $langs, '', 'F');
-            } catch (Exception $e) {
-                // Ignorer erreur generation — le PDF reste generable via le bouton
             }
             header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
             exit;
@@ -97,26 +90,26 @@ if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $toke
 if ($action === 'update' && $permissiontoedit && !$error && $user->valid && $token) {
     $object->date_eb = dol_mktime(12,0,0, GETPOST('date_ebmonth', 'int'), GETPOST('date_ebday', 'int'), GETPOST('date_ebyear', 'int'));
     $object->date_eb = $db->idate($object->date_eb);
-    $object->objet = GETPOST('objet', 'alphanohtml');
-    $object->note_public = GETPOST('note_public', 'alphanohtml');
+    $object->objet = GETPOST('description', 'alphanohtml');
+    $object->signataire_nom_d = GETPOST('demandeur_nom', 'alphanohtml');
+    $object->signataire_fonction_d = GETPOST('fonction', 'alphanohtml');
+    $object->note_public = GETPOST('remarques', 'alphanohtml');
     $res = $object->update($user);
     if ($res > 0) {
-        // Suppression + recréation lignes
+        // Suppression + recréation lignes via addline()
         $ln = new ApcEtatBesoinLine($db);
         $ln->deleteAllForParent($user, $object->id);
         $lignes = GETPOST('lines', 'array');
-        $no = 1;
         if (is_array($lignes)) {
             foreach ($lignes as $line) {
                 if (empty($line['depense'])) continue;
-                $nl = new ApcEtatBesoinLine($db);
-                $nl->fk_etatbesoin = $object->id;
-                $nl->no_ligne = $no++;
-                $nl->depense = $line['depense'];
-                $nl->projet_or_budget = $line['projet_or_budget'];
-                $nl->compte = $line['compte'];
-                $nl->montant = (float)str_replace(',', '.', $line['montant']);
-                $nl->create($user);
+                $object->addline(
+                    $user,
+                    $line['depense'],
+                    $line['projet_or_budget'],
+                    $line['compte'],
+                    (float) str_replace(',', '.', $line['montant'])
+                );
             }
         }
         header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
@@ -187,13 +180,13 @@ if ($action === 'create' || $action === 'edit') {
     print '<tr><td class="fieldrequired">' . $langs->trans('EBDate') . '</td><td>'
         . $form->select_date($obj->date_eb ? $obj->date_eb : -1, 'date_eb', 0, 0, 1, '', 1, 0) . '</td></tr>';
     print '<tr><td class="fieldrequired">' . $langs->trans('FieldObjet') . '</td><td>'
-        . '<input type="text" size="80" name="objet" value="' . dol_escape_htmltag($obj->objet) . '"></td></tr>';
+        . '<input type="text" size="80" name="description" value="' . dol_escape_htmltag($obj->objet) . '"></td></tr>';
     print '<tr><td>' . $langs->trans('EBDemandeur') . ' / Nom</td><td>'
-        . '<input type="text" size="50" name="signataire_nom_d" value="' . dol_escape_htmltag($obj->signataire_nom_d) . '"></td></tr>';
+        . '<input type="text" size="50" name="demandeur_nom" value="' . dol_escape_htmltag($obj->signataire_nom_d) . '"></td></tr>';
     print '<tr><td>' . $langs->trans('FieldFonction') . '</td><td>'
-        . '<input type="text" size="50" name="signataire_fonction_d" value="' . dol_escape_htmltag($obj->signataire_fonction_d) . '"></td></tr>';
+        . '<input type="text" size="50" name="fonction" value="' . dol_escape_htmltag($obj->signataire_fonction_d) . '"></td></tr>';
     print '<tr><td class="tdtop">' . $langs->trans('FieldNotes') . '</td><td>'
-        . '<textarea rows="3" cols="80" name="note_public">' . dol_escape_htmltag($obj->note_public) . '</textarea></td></tr>';
+        . '<textarea rows="3" cols="80" name="remarques">' . dol_escape_htmltag($obj->note_public) . '</textarea></td></tr>';
     print '</table>';
 
     // ========== SECTION LIGNES ==========
@@ -355,9 +348,19 @@ if ($action === 'create' || $action === 'edit') {
         }
     }
 
+    // ======= SECTION DOCUMENTS PDF (nativ Dolibarr showdocuments) =======
+    require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
+    $formfile = new FormFile($db);
+    $upload_dir = $conf->apclogistics->dir_output . '/etatbesoin/' . dol_sanitizeFileName($object->ref);
+    $filedir    = $conf->apclogistics->dir_output . '/etatbesoin/' . dol_sanitizeFileName($object->ref) . '/';
+    $urlsource  = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
+    $genallowed  = $permissiontocreate;
+    $delallowed  = $permissiontoedit;
+    print '<h3 style="margin-top:18px;">' . $langs->trans('Documents') . '</h3>';
+    print $formfile->showdocuments('apclogistics:EtatBesoin', $object->ref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf);
+
     // ======= BOUTONS ACTIONS =======
     print '<div class="tabsAction" style="margin-top:24px;">';
-    print '<a class="butAction" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=generate_pdf&token=' . newToken() . '">' . $langs->trans('GeneratePDF') . '</a>';
     if ($permissiontoedit) print '<a class="butAction" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=edit">' . $langs->trans('Modify') . '</a>';
     if ($permissiontodelete) print '<a class="butActionDelete" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=delete">' . $langs->trans('Delete') . '</a>';
     print '</div>';

@@ -55,6 +55,9 @@ class ApcEtatBesoin extends ApcObjectBase
 
     public $lines = array();   // ApcEtatBesoinLine[]
 
+    /** Modele PDF pour showdocuments() Dolibarr */
+    public $model_pdf = 'etatbesoin_apc';
+
     public function __construct(DoliDB $db)
     {
         $this->db = $db;
@@ -76,6 +79,32 @@ class ApcEtatBesoin extends ApcObjectBase
         $this->lines = ApcEtatBesoinLine::fetchAllForParent($this->db, (int)$this->id);
         $this->calculateTotals();
         return $this->lines;
+    }
+
+    /**
+     * Ajoute une ligne de depense (conforme spec Dolibarr addline).
+     * @param User  $user           Utilisateur courant
+     * @param string $depense       Libelle de la depense
+     * @param string $projet_or_budget  Projet ou code budget
+     * @param string $compte        Numero de compte
+     * @param float  $montant       Montant de la ligne
+     * @return int <0 si KO, >0 si OK
+     */
+    public function addline($user, $depense, $projet_or_budget = '', $compte = '', $montant = 0)
+    {
+        $ln = new ApcEtatBesoinLine($this->db);
+        $ln->fk_etatbesoin = (int) $this->id;
+        $ln->no_ligne      = count($this->lines) + 1;
+        $ln->depense       = $depense;
+        $ln->projet_or_budget = $projet_or_budget;
+        $ln->compte        = $compte;
+        $ln->montant       = (float) $montant;
+        $res = $ln->create($user);
+        if ($res > 0) {
+            $this->lines[] = $ln;
+            $this->calculateTotals();
+        }
+        return $res;
     }
 
     /** Applique la signature Demandeur, Verificateur OU Approbateur selon $level (0/1/2) */
