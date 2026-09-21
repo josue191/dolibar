@@ -7,6 +7,8 @@
  */
 
 if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL', '1');
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 $res = 0; if (!$res && file_exists("../main.inc.php")) $res = @include "../main.inc.php"; if (!$res && file_exists("../../main.inc.php")) $res = @include "../../main.inc.php"; if (!$res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
@@ -24,58 +26,59 @@ $langs->load('main');
 // =====================================================
 function apc_ensure_tables($db) {
     $prefix = MAIN_DB_PREFIX;
+    $errors = array();
 
     // Table lignes etat de besoin
     $tbl = $prefix . 'apclogistics_etatbesoin_lines';
-    $check = $db->query("SHOW TABLES LIKE '" . $tbl . "'");
-    if ($check && $db->num_rows($check) == 0) {
-        $sql = "CREATE TABLE IF NOT EXISTS " . $tbl . " (
-            rowid INT AUTO_INCREMENT PRIMARY KEY,
-            entity INT DEFAULT 1 NOT NULL,
-            fk_etatbesoin INT NOT NULL,
-            no_ligne INT NOT NULL DEFAULT 0,
-            depense VARCHAR(255) NOT NULL,
-            projet_or_budget VARCHAR(255) DEFAULT NULL,
-            budget_code VARCHAR(64) DEFAULT NULL,
-            compte VARCHAR(32) DEFAULT NULL,
-            montant DECIMAL(24,8) NOT NULL DEFAULT 0,
-            fk_product INT DEFAULT NULL,
-            extraparams TEXT DEFAULT NULL,
-            date_creation DATETIME DEFAULT NULL,
-            tms TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            fk_user_creat INT DEFAULT NULL,
-            fk_user_modif INT DEFAULT NULL,
-            KEY idx_apclog_ebl_main (fk_etatbesoin),
-            KEY idx_apclog_ebl_prod (fk_product)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-        $db->query($sql);
+    $sql = "CREATE TABLE IF NOT EXISTS " . $tbl . " (
+        rowid INT AUTO_INCREMENT PRIMARY KEY,
+        entity INT DEFAULT 1 NOT NULL,
+        fk_etatbesoin INT NOT NULL,
+        no_ligne INT NOT NULL DEFAULT 0,
+        depense VARCHAR(255) NOT NULL,
+        projet_or_budget VARCHAR(255) DEFAULT NULL,
+        budget_code VARCHAR(64) DEFAULT NULL,
+        compte VARCHAR(32) DEFAULT NULL,
+        montant DECIMAL(24,8) NOT NULL DEFAULT 0,
+        fk_product INT DEFAULT NULL,
+        extraparams TEXT DEFAULT NULL,
+        date_creation DATETIME DEFAULT NULL,
+        tms TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        fk_user_creat INT DEFAULT NULL,
+        fk_user_modif INT DEFAULT NULL,
+        KEY idx_apclog_ebl_main (fk_etatbesoin),
+        KEY idx_apclog_ebl_prod (fk_product)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+    if (!$db->query($sql)) {
+        $errors[] = 'et Lines: ' . $db->lasterror();
     }
 
     // Table audit log
     $tbl2 = $prefix . 'apclogistics_auditlog';
-    $check2 = $db->query("SHOW TABLES LIKE '" . $tbl2 . "'");
-    if ($check2 && $db->num_rows($check2) == 0) {
-        $sql2 = "CREATE TABLE IF NOT EXISTS " . $tbl2 . " (
-            rowid INT AUTO_INCREMENT PRIMARY KEY,
-            entity INT DEFAULT 1 NOT NULL,
-            entity_type VARCHAR(32) NOT NULL,
-            entity_id INT NOT NULL,
-            action_type VARCHAR(32) NOT NULL,
-            action_details TEXT DEFAULT NULL,
-            old_values_json TEXT DEFAULT NULL,
-            new_values_json TEXT DEFAULT NULL,
-            fk_user INT DEFAULT NULL,
-            user_login VARCHAR(64) DEFAULT NULL,
-            ip_address VARCHAR(64) DEFAULT NULL,
-            http_user_agent VARCHAR(255) DEFAULT NULL,
-            date_action DATETIME NOT NULL,
-            KEY idx_apclog_aud_type (entity_type),
-            KEY idx_apclog_aud_id (entity_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-        $db->query($sql2);
+    $sql2 = "CREATE TABLE IF NOT EXISTS " . $tbl2 . " (
+        rowid INT AUTO_INCREMENT PRIMARY KEY,
+        entity INT DEFAULT 1 NOT NULL,
+        entity_type VARCHAR(32) NOT NULL,
+        entity_id INT NOT NULL,
+        action_type VARCHAR(32) NOT NULL,
+        action_details TEXT DEFAULT NULL,
+        old_values_json TEXT DEFAULT NULL,
+        new_values_json TEXT DEFAULT NULL,
+        fk_user INT DEFAULT NULL,
+        user_login VARCHAR(64) DEFAULT NULL,
+        ip_address VARCHAR(64) DEFAULT NULL,
+        http_user_agent VARCHAR(255) DEFAULT NULL,
+        date_action DATETIME NOT NULL,
+        KEY idx_apclog_aud_type (entity_type),
+        KEY idx_apclog_aud_id (entity_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+    if (!$db->query($sql2)) {
+        $errors[] = 'auditlog: ' . $db->lasterror();
     }
+
+    return $errors;
 }
-apc_ensure_tables($db);
+$tableErrors = apc_ensure_tables($db);
 
 $id      = (int) GETPOST('id', 'int');
 $ref     = GETPOST('ref', 'alpha');
@@ -282,6 +285,27 @@ if ($action === 'sign' && $permissiontovalidate && $id > 0) {
  */
 $title = ($action === 'create' ? $langs->trans('NewEtatBesoin') : ($object->ref ?: $langs->trans('EBTitle')));
 llxHeader('', $title, '', '', 0, 0, array('/custom/apclogistics/js/apclogistics.js'), array('/custom/apclogistics/css/apclogistics.css'));
+
+// Debug: afficher erreurs creation tables
+if (!empty($tableErrors)) {
+    print '<div style="background:#fee;padding:12px;border:2px solid #c00;margin:12px;font-family:monospace;font-size:12px;">';
+    print '<b>ERREUR CREATION TABLES :</b><br>';
+    foreach ($tableErrors as $e) print '- ' . dol_escape_htmltag($e) . '<br>';
+    print 'Exécutez le script de test : <a href="' . DOL_URL_ROOT . '/custom/apclogistics/scripts/test_eb_debug.php">test_eb_debug.php</a>';
+    print '</div>';
+}
+
+// Debug: état des tables
+$debugTbl = array();
+foreach (array('apclogistics_etatbesoin', 'apclogistics_etatbesoin_lines', 'apclogistics_auditlog') as $t) {
+    $full = MAIN_DB_PREFIX . $t;
+    $chk = $db->query("SELECT 1 FROM " . $full . " LIMIT 1");
+    $debugTbl[$t] = $chk ? 'OK' : 'MANQUANT (' . $db->lasterror() . ')';
+}
+print '<div style="background:#f0f8f0;padding:8px;border:1px solid #4a4;margin:6px;font-family:monospace;font-size:11px;">';
+print '<b>Tables :</b> ';
+foreach ($debugTbl as $k => $v) print $k . '=<b>' . $v . '</b> | ';
+print '</div>';
 
 // Onglets
 $head = array();
