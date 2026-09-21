@@ -3,7 +3,7 @@
 /* Copyright (C) 2026 APC ONG Agri-Peace and Child <contact@apc-ong.org>
  *
  * etatbesoin_card.php — Fiche Etat de Besoin : création/édition/suppression + onglets
- * Onglets : Fiche (champs + lignes) | Lignes (édition) | Liens | Historique/Audit | PDF
+ * Onglets : Fiche (champs + lignes) | Liens | Historique/Audit | PDF
  */
 
 if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL', '1');
@@ -13,18 +13,17 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
 require_once __DIR__ . '/class/ApcEtatBesoin.class.php';
 require_once __DIR__ . '/class/apc_links.lib.php';
 require_once __DIR__ . '/class/pdf/pdf_etatbesoin_apc.modules.php';
-require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
 
 global $db, $conf, $langs, $user;
 
 $langs->load('apclogistics@apclogistics');
 $langs->load('main');
 
-$id = (int)GETPOST('id', 'int');
-$ref = GETPOST('ref', 'alpha');
-$action = GETPOST('action', 'aZ');
+$id      = (int) GETPOST('id', 'int');
+$ref     = GETPOST('ref', 'alpha');
+$action  = GETPOST('action', 'aZ');
 $confirm = GETPOST('confirm', 'alpha');
-$token = GETPOST('token', 'alpha');
+$token   = GETPOST('token', 'alpha');
 
 $object = new ApcEtatBesoin($db);
 $extrafields = new ExtraFields($db);
@@ -36,10 +35,10 @@ if ($id > 0 || $ref) {
     $object->fetchLines();
 }
 
-$permissiontoread   = !empty($user->rights->apclogistics->etatbesoin->read);
-$permissiontocreate = !empty($user->rights->apclogistics->etatbesoin->create);
-$permissiontoedit   = !empty($user->rights->apclogistics->etatbesoin->edit);
-$permissiontodelete = !empty($user->rights->apclogistics->etatbesoin->delete);
+$permissiontoread     = !empty($user->rights->apclogistics->etatbesoin->read);
+$permissiontocreate   = !empty($user->rights->apclogistics->etatbesoin->create);
+$permissiontoedit     = !empty($user->rights->apclogistics->etatbesoin->edit);
+$permissiontodelete   = !empty($user->rights->apclogistics->etatbesoin->delete);
 $permissiontovalidate = !empty($user->rights->apclogistics->etatbesoin->validate);
 
 if ($action === 'create' && !$permissiontocreate) accessforbidden();
@@ -47,15 +46,18 @@ if (empty($permissiontoread) && $action !== 'create') accessforbidden();
 
 $error = 0;
 $backtopage = DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_list.php';
+$form = new Form($db);
 
 /*
- * Actions
+ * ======================== ACTIONS ========================
  */
+
+// ---- CRÉER ----
 if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $token && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($conf->dol_url_root)) $backtopage = $conf->dol_url_root . '/custom/apclogistics/etatbesoin_list.php';
-    $object->date_eb = dol_mktime(12,0,0, GETPOST('date_ebmonth', 'int'), GETPOST('date_ebday', 'int'), GETPOST('date_ebyear', 'int'));
+
+    $object->date_eb = dol_mktime(12, 0, 0, GETPOST('date_ebmonth', 'int'), GETPOST('date_ebday', 'int'), GETPOST('date_ebyear', 'int'));
     $object->date_eb = $db->idate($object->date_eb);
-    // Mapping noms formulaire → champs DB (conforme spec utilisateur)
     $object->objet                = GETPOST('description', 'alphanohtml');
     $object->signataire_nom_d     = GETPOST('demandeur_nom', 'alphanohtml');
     $object->signataire_fonction_d = GETPOST('fonction', 'alphanohtml');
@@ -67,33 +69,30 @@ if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $toke
     if (!$error) {
         $res = $object->create($user);
         if ($res > 0) {
-            // Ajout des lignes via addline() (conforme spec Dolibarr)
             $lignes = GETPOST('lines', 'array');
             if (is_array($lignes)) {
                 foreach ($lignes as $line) {
                     if (empty($line['depense'])) continue;
-                    $object->addline(
-                        $user,
-                        $line['depense'],
-                        $line['projet_or_budget'],
-                        $line['compte'],
-                        (float) str_replace(',', '.', $line['montant'])
-                    );
+                    $object->addline($user, $line['depense'], $line['projet_or_budget'], $line['compte'], (float) str_replace(',', '.', $line['montant']));
                 }
             }
             header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
             exit;
-        } else { setEventMessages($object->error, $object->errors, 'errors'); }
+        } else {
+            setEventMessages($object->error, $object->errors, 'errors');
+        }
     }
 }
 
+// ---- MODIFIER ----
 if ($action === 'update' && $permissiontoedit && !$error && $user->valid && $token) {
-    $object->date_eb = dol_mktime(12,0,0, GETPOST('date_ebmonth', 'int'), GETPOST('date_ebday', 'int'), GETPOST('date_ebyear', 'int'));
+    $object->date_eb = dol_mktime(12, 0, 0, GETPOST('date_ebmonth', 'int'), GETPOST('date_ebday', 'int'), GETPOST('date_ebyear', 'int'));
     $object->date_eb = $db->idate($object->date_eb);
-    $object->objet = GETPOST('description', 'alphanohtml');
-    $object->signataire_nom_d = GETPOST('demandeur_nom', 'alphanohtml');
+    $object->objet                = GETPOST('description', 'alphanohtml');
+    $object->signataire_nom_d     = GETPOST('demandeur_nom', 'alphanohtml');
     $object->signataire_fonction_d = GETPOST('fonction', 'alphanohtml');
-    $object->note_public = GETPOST('remarques', 'alphanohtml');
+    $object->note_public          = GETPOST('remarques', 'alphanohtml');
+
     $res = $object->update($user);
     if ($res > 0) {
         // Suppression + recréation lignes via addline()
@@ -103,50 +102,100 @@ if ($action === 'update' && $permissiontoedit && !$error && $user->valid && $tok
         if (is_array($lignes)) {
             foreach ($lignes as $line) {
                 if (empty($line['depense'])) continue;
-                $object->addline(
-                    $user,
-                    $line['depense'],
-                    $line['projet_or_budget'],
-                    $line['compte'],
-                    (float) str_replace(',', '.', $line['montant'])
-                );
+                $object->addline($user, $line['depense'], $line['projet_or_budget'], $line['compte'], (float) str_replace(',', '.', $line['montant']));
             }
         }
+        // Recalculer le total
+        $object->calculateTotals();
+        $object->update($user);
         header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
         exit;
-    } else { setEventMessages($object->error, $object->errors, 'errors'); }
+    } else {
+        setEventMessages($object->error, $object->errors, 'errors');
+    }
 }
 
+// ---- SUPPRIMER ----
 if ($action === 'confirm_delete' && $confirm === 'yes' && $permissiontodelete && $token) {
     $res = $object->delete($user);
-    if ($res > 0) { header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_list.php'); exit; }
-    else setEventMessages($object->error, $object->errors, 'errors');
+    if ($res > 0) {
+        header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_list.php');
+        exit;
+    } else {
+        setEventMessages($object->error, $object->errors, 'errors');
+    }
 }
 
-if ($action === 'generate_pdf' && $id > 0) {
-    $g = new pdf_etatbesoin_apc($db);
-    $g->write_file($object, $langs, '', 'I');
+// ---- GÉNÉRER PDF ----
+if ($action === 'generate_pdf' && $id > 0 && $token && $permissiontoread) {
+    try {
+        $pdfGen = new pdf_etatbesoin_apc($db);
+        $pdfGen->write_file($object, $langs, '', 'I');
+    } catch (Exception $e) {
+        setEventMessages('Erreur génération PDF : ' . $e->getMessage(), null, 'errors');
+        header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
+        exit;
+    }
     exit;
 }
 
+// ---- SUPPRIMER PDF ----
+if ($action === 'delete_pdf' && $id > 0 && $permissiontodelete && $token) {
+    $filename = GETPOST('file', 'alpha');
+    if ($filename) {
+        $upload_dir = $conf->apclogistics->dir_output . '/etatbesoin/' . dol_sanitizeFileName($object->ref);
+        $filepath = $upload_dir . '/' . basename($filename); // basename = protection path traversal
+        if (is_file($filepath)) {
+            unlink($filepath);
+            setEventMessages($langs->trans('Deleted'), null, 'mesgs');
+        }
+    }
+    header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
+    exit;
+}
+
+// ---- TÉLÉCHARGER PDF ----
+if ($action === 'download_pdf' && $id > 0 && $permissiontoread && $token) {
+    $filename = GETPOST('file', 'alpha');
+    if ($filename) {
+        $upload_dir = $conf->apclogistics->dir_output . '/etatbesoin/' . dol_sanitizeFileName($object->ref);
+        $filepath = $upload_dir . '/' . basename($filename); // basename = protection path traversal
+        if (is_file($filepath)) {
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: inline; filename="' . basename($filename) . '"');
+            header('Content-Length: ' . filesize($filepath));
+            readfile($filepath);
+            exit;
+        }
+    }
+    setEventMessages('Fichier non trouvé', null, 'errors');
+    header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
+    exit;
+}
+
+// ---- SIGNER ----
 if ($action === 'sign' && $permissiontovalidate && $id > 0) {
-    $level = (int)GETPOST('level', 'int');
+    $level = (int) GETPOST('level', 'int');
     $res = $object->sign($level, $user,
         GETPOST('nom_sig', 'alphanohtml'),
         GETPOST('fct_sig', 'alphanohtml')
     );
-    if ($res > 0) { setEventMessages($langs->trans('SignOK'), null, 'mesgs'); }
-    else setEventMessages($object->error, $object->errors, 'errors');
+    if ($res > 0) {
+        setEventMessages($langs->trans('SignOK'), null, 'mesgs');
+    } else {
+        setEventMessages($object->error, $object->errors, 'errors');
+    }
     header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
     exit;
 }
 
 /*
- * View
+ * ======================== VIEW ========================
  */
 $title = ($action === 'create' ? $langs->trans('NewEtatBesoin') : ($object->ref ?: $langs->trans('EBTitle')));
 llxHeader('', $title, '', '', 0, 0, array('/custom/apclogistics/js/apclogistics.js'), array('/custom/apclogistics/css/apclogistics.css'));
 
+// Onglets
 $head = array();
 $head[0][0] = DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . ($object->id ?: 0) . '&action=' . $action;
 $head[0][1] = $langs->trans('TabCard');
@@ -161,11 +210,13 @@ $head[2][2] = 'tabhistory';
 $picto = 'apclogistics@apclogistics';
 dol_fiche_head($head, 'tabcard', $title, -1, $picto);
 
+/*
+ * ======================== FORMULAIRE (Création / Édition) ========================
+ */
 if ($action === 'create' || $action === 'edit') {
     $editing = ($action === 'edit');
     $obj =& $object;
     if ($editing) $obj->fetchLines();
-    $form = new Form($db);
     $hiddentoken = '<input type="hidden" name="token" value="' . newToken() . '">';
     $act = ($editing ? 'update' : 'add');
 
@@ -173,6 +224,7 @@ if ($action === 'create' || $action === 'edit') {
     print $hiddentoken;
     print '<input type="hidden" name="action" value="' . $act . '">';
 
+    // Champs fiche
     print '<table class="border centpercent">';
     print '<tr><td class="titlefieldcreate fieldrequired">' . $langs->trans('EBRef') . '</td><td>';
     if ($editing) print $obj->ref; else print '<span class="opacitymedium">(Généré automatiquement à l\'enregistrement)</span>';
@@ -189,7 +241,7 @@ if ($action === 'create' || $action === 'edit') {
         . '<textarea rows="3" cols="80" name="remarques">' . dol_escape_htmltag($obj->note_public) . '</textarea></td></tr>';
     print '</table>';
 
-    // ========== SECTION LIGNES ==========
+    // Lignes
     print '<h3 style="margin-top:18px;">' . $langs->trans('EBColDepense') . 's</h3>';
     print '<table class="noborder centpercent" id="apc-eb-lines-table">';
     print '<thead><tr class="liste_titre">';
@@ -202,15 +254,15 @@ if ($action === 'create' || $action === 'edit') {
     print '</tr></thead>';
     print '<tbody id="apc-eb-lines-body">';
 
-    $lines = $editing && !empty($obj->lines) ? $obj->lines : array((object)array());
+    $lines = $editing && !empty($obj->lines) ? $obj->lines : array((object) array());
     $idx = 0;
     foreach ($lines as $ln) {
         $dep = isset($ln->depense) ? $ln->depense : '';
         $bud = isset($ln->projet_or_budget) ? $ln->projet_or_budget : '';
         $cmp = isset($ln->compte) ? $ln->compte : '';
-        $mnt = isset($ln->montant) ? (float)$ln->montant : '';
+        $mnt = isset($ln->montant) ? (float) $ln->montant : '';
         print '<tr class="apc-line-row">';
-        print '<td class="apc-eb-no center">' . ($idx+1) . '</td>';
+        print '<td class="apc-eb-no center">' . ($idx + 1) . '</td>';
         print '<td><input type="text" class="flat width100" name="lines[' . $idx . '][depense]" value="' . dol_escape_htmltag($dep) . '"></td>';
         print '<td><input type="text" class="flat width100" name="lines[' . $idx . '][projet_or_budget]" value="' . dol_escape_htmltag($bud) . '"></td>';
         print '<td><input type="text" class="flat width100" name="lines[' . $idx . '][compte]" value="' . dol_escape_htmltag($cmp) . '"></td>';
@@ -234,29 +286,29 @@ if ($action === 'create' || $action === 'edit') {
     print '</div>';
     print '</form>';
 
-    // ===== JS : ajout/suppression lignes + calcul total =====
+    // JS
     print '<script type="text/javascript">
     $(document).ready(function() {
         function calcTotal() {
             var sum = 0;
             $(".apc-line-montant").each(function(){
-                var v = parseFloat($(this).val().replace(/\s/g,"").replace(",","."));
+                var v = parseFloat($(this).val().replace(/\\s/g,"").replace(",","."));
                 if (!isNaN(v)) sum += v;
             });
             $("#apc-eb-total").text(APCNumFmt(sum));
         }
-        function APCNumFmt(n){ n = Number(n||0).toFixed(2); var p = n.split("."); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g," "); return p.join(","); }
+        function APCNumFmt(n){ n = Number(n||0).toFixed(2); var p = n.split("."); p[0]=p[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g," "); return p.join(","); }
         function renumber() { $(".apc-eb-no").each(function(i){ $(this).text(i+1); }); }
         $(document).on("input", ".apc-line-montant", calcTotal);
         $("#apc-add-line").on("click", function() {
             var n = $("#apc-eb-lines-body tr").length;
-            var html = "<tr class=\"apc-line-row\">"
-                + "<td class=\"apc-eb-no center\">"+(n+1)+"</td>"
-                + "<td><input type=\"text\" class=\"flat width100\" name=\"lines["+n+"][depense]\"></td>"
-                + "<td><input type=\"text\" class=\"flat width100\" name=\"lines["+n+"][projet_or_budget]\"></td>"
-                + "<td><input type=\"text\" class=\"flat width100\" name=\"lines["+n+"][compte]\"></td>"
-                + "<td><input type=\"text\" class=\"flat width100 right apc-line-montant\" name=\"lines["+n+"][montant]\"></td>"
-                + "<td><button type=\"button\" class=\"button apc-rm-line\" style=\"padding:2px 6px;\">-</button></td>"
+            var html = "<tr class=\\"apc-line-row\\">"
+                + "<td class=\\"apc-eb-no center\\">"+(n+1)+"</td>"
+                + "<td><input type=\\"text\\" class=\\"flat width100\\" name=\\"lines["+n+"][depense]\\"></td>"
+                + "<td><input type=\\"text\\" class=\\"flat width100\\" name=\\"lines["+n+"][projet_or_budget]\\"></td>"
+                + "<td><input type=\\"text\\" class=\\"flat width100\\" name=\\"lines["+n+"][compte]\\"></td>"
+                + "<td><input type=\\"text\\" class=\\"flat width100 right apc-line-montant\\" name=\\"lines["+n+"][montant]\\"></td>"
+                + "<td><button type=\\"button\\" class=\\"button apc-rm-line\\" style=\\"padding:2px 6px;\\">-</button></td>"
                 + "</tr>";
             $("#apc-eb-lines-body").append(html);
             renumber(); calcTotal();
@@ -267,8 +319,11 @@ if ($action === 'create' || $action === 'edit') {
         calcTotal();
     });
     </script>';
+
 } else {
-    // ======== AFFICHAGE FICHE ========
+    /*
+     * ======================== AFFICHAGE FICHE ========================
+     */
     $formconfirm = '';
     if ($action === 'delete' && $permissiontodelete) {
         $formconfirm = $form->formconfirm(
@@ -281,6 +336,7 @@ if ($action === 'create' || $action === 'edit') {
         );
     }
 
+    // Informations générales
     print '<table class="border centpercent">';
     print '<tr><td class="titlefield">' . $langs->trans('EBRef') . '</td><td class="valeur"><b>' . $object->ref . '</b></td>'
         . '<td class="titlefield">' . $langs->trans('FieldStatus') . '</td><td class="valeur">' . $object->getStatusBadge() . '</td></tr>';
@@ -299,8 +355,7 @@ if ($action === 'create' || $action === 'edit') {
     if (!empty($object->note_public)) print '<tr><td class="tdtop">' . $langs->trans('FieldNotes') . '</td><td colspan="3">' . dol_escape_htmltag($object->note_public) . '</td></tr>';
     print '</table>';
 
-    // ======= TABLEAU LIGNES =======
-    $object->fetchLines();
+    // Tableau des lignes
     print '<h3 style="margin-top:18px;">' . $langs->trans('EBColDepense') . 's</h3>';
     print '<table class="noborder centpercent">';
     print '<thead><tr class="liste_titre">';
@@ -310,14 +365,15 @@ if ($action === 'create' || $action === 'edit') {
     print '<th>' . $langs->trans('EBColCompte') . '</th>';
     print '<th class="right" style="width:160px;">' . $langs->trans('EBColMontant') . '</th>';
     print '</tr></thead><tbody>';
-    $i = 1; $total = 0;
+    $i = 1;
+    $total = 0;
     foreach ($object->lines as $ln) {
-        $total += (float)$ln->montant;
+        $total += (float) $ln->montant;
         print '<tr class="oddeven"><td class="center">' . $i++ . '</td>';
         print '<td>' . dol_escape_htmltag($ln->depense) . '</td>';
         print '<td>' . dol_escape_htmltag($ln->projet_or_budget) . '</td>';
         print '<td class="center">' . dol_escape_htmltag($ln->compte) . '</td>';
-        print '<td class="apc-money">' . price((float)$ln->montant, 0, $langs, 0, 0, -1, $conf->currency) . '</td>';
+        print '<td class="apc-money">' . price((float) $ln->montant, 0, $langs, 0, 0, -1, $conf->currency) . '</td>';
         print '</tr>';
     }
     if (empty($object->lines)) print '<tr class="oddeven"><td colspan="5" class="opacitymedium">' . $langs->trans('NoRecord') . '</td></tr>';
@@ -325,10 +381,10 @@ if ($action === 'create' || $action === 'edit') {
         . '<td class="right apc-money">' . price($total, 0, $langs, 0, 0, -1, $conf->currency) . '</td></tr></tfoot>';
     print '</table>';
 
-    // ======= ZONES VALIDATION PAR SIGNATURES =======
+    // Signatures
     if ($permissiontovalidate && (int)$object->status < ApcEtatBesoin::STATUS_VALIDATED) {
         print '<h3 style="margin-top:18px;">' . $langs->trans('AUDSignature') . '</h3>';
-        foreach (array(0=>'Demandeur', 1=>'Verificateur', 2=>'Approbateur') as $lvl => $key) {
+        foreach (array(0 => 'Demandeur', 1 => 'Verificateur', 2 => 'Approbateur') as $lvl => $key) {
             $signed = false;
             if ($lvl === 0) $signed = !empty($object->date_signature_demandeur);
             if ($lvl === 1) $signed = !empty($object->date_signature_verif);
@@ -348,37 +404,50 @@ if ($action === 'create' || $action === 'edit') {
         }
     }
 
-    /*
-     * Zone de gestion des documents rattachés (PDF)
-     */
-    if ($object->id > 0 && $action != 'create') {
-        print '<br>';
-
-        require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
-        $formfile = new FormFile($db);
-
-        $upload_dir = $conf->apclogistics->dir_output . '/etatbesoin/' . dol_sanitizeFileName($object->ref);
-        $urlsource  = $_SERVER["PHP_SELF"] . "?id=" . $object->id;
-
-        $delallowed = $user->hasRight('apclogistics', 'etatbesoin', 'delete') || $user->admin;
-
-        // On désactive le moteur de génération automatique (0) pour éviter l'erreur de classe
-        print $formfile->showdocuments(
-            'apclogistics',
-            $object->ref,
-            $upload_dir,
-            $urlsource,
-            0,                  // $genallowed mis à 0 temporairement
-            $delallowed,
-            '',                 // $modelselected vide
-            1,
-            0,
-            0,
-            280
-        );
+    // ===================== DOCUMENTS PDF =====================
+    // Liste des PDF déjà générés + bouton Générer
+    $upload_dir = $conf->apclogistics->dir_output . '/etatbesoin/' . dol_sanitizeFileName($object->ref);
+    $dir_files = array();
+    if (is_dir($upload_dir)) {
+        $handle = opendir($upload_dir);
+        if ($handle) {
+            while (false !== ($file = readdir($handle))) {
+                if ($file === '.' || $file === '..') continue;
+                if (preg_match('/\.pdf$/i', $file)) {
+                    $dir_files[] = $file;
+                }
+            }
+            closedir($handle);
+            sort($dir_files);
+        }
     }
 
-    // ======= BOUTONS ACTIONS =======
+    print '<h3 style="margin-top:18px;">' . $langs->trans('Documents') . '</h3>';
+    if (!empty($dir_files)) {
+        print '<table class="noborder centpercent">';
+        print '<tr class="liste_titre"><th>' . $langs->trans('File') . '</th><th class="right" style="width:120px;">' . $langs->trans('Actions') . '</th></tr>';
+        foreach ($dir_files as $f) {
+            $filepath = $upload_dir . '/' . $f;
+            $filesize = is_file($filepath) ? dol_size(filesize($filepath)) : '';
+            print '<tr class="oddeven"><td>' . dol_escape_htmltag($f) . ' <span class="opacitymedium">' . $filesize . '</span></td>';
+            print '<td class="right">';
+            print '<a class="button small" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=download_pdf&file=' . urlencode($f) . '&token=' . newToken() . '">' . $langs->trans('Download') . '</a> ';
+            if ($permissiontodelete) {
+                print '<a class="button small button-delete" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=delete_pdf&file=' . urlencode($f) . '&token=' . newToken() . '" onclick="return confirm(\'' . $langs->trans('ConfirmDelete') . '\');">' . $langs->trans('Delete') . '</a>';
+            }
+            print '</td></tr>';
+        }
+        print '</table>';
+    } else {
+        print '<p class="opacitymedium">' . $langs->trans('NoRecord') . '</p>';
+    }
+
+    // Bouton Générer PDF
+    print '<div style="margin-top:10px;">';
+    print '<a class="button" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=generate_pdf&token=' . newToken() . '">' . $langs->trans('GeneratePDF') . '</a>';
+    print '</div>';
+
+    // Boutons d'action
     print '<div class="tabsAction" style="margin-top:24px;">';
     if ($permissiontoedit) print '<a class="butAction" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=edit">' . $langs->trans('Modify') . '</a>';
     if ($permissiontodelete) print '<a class="butActionDelete" href="' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id . '&action=delete">' . $langs->trans('Delete') . '</a>';
@@ -387,12 +456,13 @@ if ($action === 'create' || $action === 'edit') {
 
 dol_fiche_end();
 
+// Onglet Liens
 if ($action === 'links' && $object->id > 0) {
     apcPrintLinksTab($db, $langs, $conf, $object);
 }
 
+// Onglet Historique / Audit Log
 if ($action === 'audit' && $object->id > 0) {
-    // Onglet Historique / Audit Log
     $audits = ApcAuditLog::fetchForEntity($db, 'eb', $object->id, 200);
     print '<h3 style="margin-top:12px;">' . $langs->trans('TabHistory') . '</h3>';
     print '<div class="div-table-responsive-no-min"><table class="noborder centpercent">';
@@ -402,7 +472,7 @@ if ($action === 'audit' && $object->id > 0) {
     foreach ($audits as $a) {
         print '<tr class="oddeven">';
         print '<td>' . dol_print_date($db->jdate($a->date_action), 'dayhour') . '</td>';
-        print '<td>' . dol_escape_htmltag($a->user_login) . ' (id ' . (int)$a->fk_user . ')</td>';
+        print '<td>' . dol_escape_htmltag($a->user_login) . ' (id ' . (int) $a->fk_user . ')</td>';
         print '<td>' . ApcAuditLog::formatAction($a->action_type) . '</td>';
         print '<td>' . dol_escape_htmltag($a->ip_address) . '</td>';
         print '<td>' . dol_escape_htmltag($a->action_details) . '</td>';
