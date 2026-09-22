@@ -78,3 +78,15 @@ CREATE TABLE IF NOT EXISTS llx_apclogistics_auditlog (
     KEY idx_apclog_aud_type (entity_type),
     KEY idx_apclog_aud_id (entity_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 4) COMPTEUR DE NUMEROTATION (indispensable pour la creation : sans lui,
+--    toutes les creations apres la 1ere echouent avec "Duplicate entry")
+CREATE TABLE IF NOT EXISTS llx_apclogistics_numbering (
+    rowid INT AUTO_INCREMENT PRIMARY KEY,
+    entity INT DEFAULT 1 NOT NULL,
+    doc_type VARCHAR(8) NOT NULL,
+    annee INT NOT NULL,
+    last_number INT NOT NULL DEFAULT 0,
+    UNIQUE KEY uk_apclog_num (doc_type, annee, entity),
+    KEY idx_apclog_num_entity (entity)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

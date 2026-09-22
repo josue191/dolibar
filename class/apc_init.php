@@ -92,5 +92,19 @@ function apc_ensure_tables($db)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
     if (!$db->query($sql2)) $errors[] = 'auditlog: ' . $db->lasterror();
 
+    // 4) COMPTEUR DE NUMEROTATION (indispensable : sans lui, computeNextRef()
+    //    echoue silencieusement et toutes les creations apres la 1ere ont
+    //    une reference en double -> erreur "Duplicate entry")
+    $sql3 = "CREATE TABLE IF NOT EXISTS " . $prefix . "apclogistics_numbering (
+        rowid INT AUTO_INCREMENT PRIMARY KEY,
+        entity INT DEFAULT 1 NOT NULL,
+        doc_type VARCHAR(8) NOT NULL,
+        annee INT NOT NULL,
+        last_number INT NOT NULL DEFAULT 0,
+        UNIQUE KEY uk_apclog_num (doc_type, annee, entity),
+        KEY idx_apclog_num_entity (entity)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+    if (!$db->query($sql3)) $errors[] = 'numbering: ' . $db->lasterror();
+
     return $errors;
 }

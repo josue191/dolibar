@@ -35,6 +35,7 @@ $tables_to_check = array(
     'apclogistics_etatbesoin' => 'Entete EB',
     'apclogistics_etatbesoin_lines' => 'Lignes EB',
     'apclogistics_auditlog' => 'Audit Log',
+    'apclogistics_numbering' => 'Compteur numerotation',
 );
 foreach ($tables_to_check as $tblName => $label) {
     $fullTbl = MAIN_DB_PREFIX . $tblName;
@@ -120,6 +121,16 @@ foreach ($tables_to_check as $tblName => $label) {
                 KEY idx_apclog_aud_type (entity_type),
                 KEY idx_apclog_aud_id (entity_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+        } elseif ($tblName === 'apclogistics_numbering') {
+            $sql = "CREATE TABLE IF NOT EXISTS " . $fullTbl . " (
+                rowid INT AUTO_INCREMENT PRIMARY KEY,
+                entity INT DEFAULT 1 NOT NULL,
+                doc_type VARCHAR(8) NOT NULL,
+                annee INT NOT NULL,
+                last_number INT NOT NULL DEFAULT 0,
+                UNIQUE KEY uk_apclog_num (doc_type, annee, entity),
+                KEY idx_apclog_num_entity (entity)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
         }
         if (!empty($sql)) {
             $res2 = $db->query($sql);
@@ -203,6 +214,24 @@ if ($res && $db->num_rows($res) > 0) {
     }
 } else {
     echo "   SKIP: table entete manquante\n";
+}
+
+// 4b) Test compteur de numerotation (cause frequente d'echec de creation)
+echo "\n4b) TEST COMPTEUR NUMEROTATION\n";
+$tbl_num = MAIN_DB_PREFIX . 'apclogistics_numbering';
+$resN = $db->query("SHOW TABLES LIKE '" . $tbl_num . "'");
+if ($resN && $db->num_rows($resN) > 0) {
+    $sqlN = "INSERT INTO " . $tbl_num . " (entity, doc_type, annee, last_number) VALUES (1, 'eb', " . (int)date('Y') . ", 1)
+             ON DUPLICATE KEY UPDATE last_number = last_number";
+    if ($db->query($sqlN)) {
+        $rN = $db->query("SELECT last_number FROM " . $tbl_num . " WHERE doc_type = 'eb' AND annee = " . (int)date('Y') . " AND entity = 1");
+        $vN = ($rN && $oN = $db->fetch_object($rN)) ? $oN->last_number : '?';
+        echo "   COMPTEUR OK: eb/" . date('Y') . " = $vN\n";
+    } else {
+        echo "   COMPTEUR ERREUR: " . $db->lasterror() . "\n";
+    }
+} else {
+    echo "   COMPTEUR MANQUANT: table " . $tbl_num . " absente\n";
 }
 
 // 5) Check Dolibarr version
