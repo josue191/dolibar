@@ -227,6 +227,24 @@ class modApcLogistics extends DolibarrModules
                 'current',
                 1,
             ),
+            15 => array(
+                'APCLOGISTICS_USE_CACHE',
+                'chaine',
+                '1',
+                'Utiliser le cache pour les widgets dashboard (1=oui, 0=non)',
+                0,
+                'current',
+                1,
+            ),
+            16 => array(
+                'APCLOGISTICS_AUDIT_RETENTION',
+                'chaine',
+                '365',
+                'Durée de rétention des logs d\'audit en jours (défaut : 365)',
+                0,
+                'current',
+                1,
+            ),
         );
 
         // Array to add new pages in new tabs
@@ -373,6 +391,7 @@ class modApcLogistics extends DolibarrModules
     {
         $sql = array();
 
+        // Script de création des tables
         $sqlFile = __DIR__ . '/../../scripts/001_create_schema.sql';
         if (@file_exists($sqlFile)) {
             $raw = @file_get_contents($sqlFile);
@@ -382,6 +401,22 @@ class modApcLogistics extends DolibarrModules
                 $stms = array_filter(array_map('trim', explode(';', $raw)));
                 foreach ($stms as $s) {
                     if (preg_match('/^(CREATE|ALTER|INSERT|DROP)\b/i', $s)) {
+                        $sql[] = $s . ';';
+                    }
+                }
+            }
+        }
+
+        // Script d'ajout des contraintes FK (si existe)
+        $fkFile = __DIR__ . '/../../scripts/003_add_foreign_keys.sql';
+        if (@file_exists($fkFile)) {
+            $raw = @file_get_contents($fkFile);
+            if ($raw !== false) {
+                $raw = preg_replace('/--[^\n]*\n/', "\n", $raw);
+                $raw = preg_replace('/\/\*[\s\S]*?\*\//', '', $raw);
+                $stms = array_filter(array_map('trim', explode(';', $raw)));
+                foreach ($stms as $s) {
+                    if (preg_match('/^(ALTER)\b/i', $s)) {
                         $sql[] = $s . ';';
                     }
                 }

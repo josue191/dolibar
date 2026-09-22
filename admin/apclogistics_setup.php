@@ -32,6 +32,10 @@ if ($action === 'save' && $user->admin && $token && $_SERVER['REQUEST_METHOD'] =
     $valTokenDays = (int)GETPOST('APCLOGISTICS_TOKEN_DAYS', 'int');
     if ($valTokenDays < 7)  $valTokenDays = 7;
     if ($valTokenDays > 60) $valTokenDays = 60;
+    
+    $valAuditRetention = (int)GETPOST('APCLOGISTICS_AUDIT_RETENTION', 'int');
+    if ($valAuditRetention < 30)  $valAuditRetention = 30;
+    if ($valAuditRetention > 1825) $valAuditRetention = 1825;
 
     $constants = array(
         'APCLOGISTICS_TOKEN_DAYS'        => (string)$valTokenDays,
@@ -51,6 +55,8 @@ if ($action === 'save' && $user->admin && $token && $_SERVER['REQUEST_METHOD'] =
         'APCLOGISTICS_HEADER_ADDR'       => GETPOST('APCLOGISTICS_HEADER_ADDR', 'alphanohtml'),
         'APCLOGISTICS_HEADER_CONTACT'    => GETPOST('APCLOGISTICS_HEADER_CONTACT', 'alphanohtml'),
         'APCLOGISTICS_HEADER_LEGAL'      => GETPOST('APCLOGISTICS_HEADER_LEGAL', 'alphanohtml'),
+        'APCLOGISTICS_USE_CACHE'         => GETPOST('APCLOGISTICS_USE_CACHE', 'int') ? '1' : '0',
+        'APCLOGISTICS_AUDIT_RETENTION'   => (string)$valAuditRetention,
     );
 
     $okCount = 0;
@@ -238,6 +244,17 @@ print '<tr class="liste_titre"><td class="titlefieldcreate" colspan="2"><b>' . $
 print '<tr class="oddeven"><td class="titlefieldcreate">' . $langs->trans('APCSetupStockAlert') . '</td><td>'
     . '<input type="number" min="0" step="1" size="8" name="APCLOGISTICS_STOCK_ALERT_QTY" value="' . dol_escape_htmltag($v('APCLOGISTICS_STOCK_ALERT_QTY','5')) . '">'
     . ' <small class="opacitymedium">' . $langs->trans('APCSetupStockAlertDesc') . '</small></td></tr>';
+print '</table>';
+
+// ============ SECTION PERFORMANCE ============
+print '<br><table class="noborder centpercent">';
+print '<tr class="liste_titre"><td class="titlefieldcreate" colspan="2"><b>' . $langs->trans('APCSetupPerformance') . '</b></td></tr>';
+print '<tr class="oddeven"><td class="titlefieldcreate">' . $langs->trans('APCSetupUseCache') . '</td><td>'
+    . '<input type="checkbox" name="APCLOGISTICS_USE_CACHE" value="1"' . ($v('APCLOGISTICS_USE_CACHE','1') === '1' ? ' checked' : '') . '> '
+    . ' <small class="opacitymedium">' . $langs->trans('APCSetupUseCacheDesc') . '</small></td></tr>';
+print '<tr class="oddeven"><td class="titlefieldcreate">' . $langs->trans('APCSetupAuditRetention') . '</td><td>'
+    . '<input type="number" min="30" max="1825" step="1" size="8" name="APCLOGISTICS_AUDIT_RETENTION" value="' . dol_escape_htmltag($v('APCLOGISTICS_AUDIT_RETENTION','365')) . '">'
+    . ' <small class="opacitymedium">' . $langs->trans('APCSetupAuditRetentionDesc') . '</small></td></tr>';
 print '</table>';
 
 // ============ BOUTONS ============

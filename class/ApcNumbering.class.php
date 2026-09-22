@@ -90,41 +90,45 @@ class ApcNumbering
 
         if (empty($year)) $year = (int)date('Y');
 
-        if (defined('APC_TRACE')) { echo "[TRACE] computeNextRef entree docType=" . $docType . " annee=" . $year . "\n"; @flush(); }
-
         $db->begin();
-        if (defined('APC_TRACE')) { echo "[TRACE]   begin OK\n"; @flush(); }
 
         try {
             $tbl = MAIN_DB_PREFIX . self::TABLE;
+
+            // Filet de securite : cree la table compteur si elle manque
+            // (sinon SELECT/INSERT echouent silencieusement -> refs en double)
+            $sqlCreate = "CREATE TABLE IF NOT EXISTS " . $tbl . " (
+                rowid INT AUTO_INCREMENT PRIMARY KEY,
+                entity INT DEFAULT 1 NOT NULL,
+                doc_type VARCHAR(8) NOT NULL,
+                annee INT NOT NULL,
+                last_number INT NOT NULL DEFAULT 0,
+                UNIQUE KEY uk_apclog_num (doc_type, annee, entity),
+                KEY idx_apclog_num_entity (entity)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+            $db->query($sqlCreate);
+
             $sqlLock = "SELECT last_number FROM " . $tbl
                      . " WHERE doc_type = '" . $db->escape($docType) . "'"
                      . " AND annee = " . (int)$year
                      . " AND entity = 1"
                      . " FOR UPDATE";
-            if (defined('APC_TRACE')) { echo "[TRACE]   avant SELECT FOR UPDATE\n"; @flush(); }
             $res = $db->query($sqlLock);
-            if (defined('APC_TRACE')) { echo "[TRACE]   apres SELECT FOR UPDATE\n"; @flush(); }
             $next = 1;
             if ($res && $o = $db->fetch_object($res)) {
                 $next = (int)$o->last_number + 1;
                 $upd = "UPDATE " . $tbl . " SET last_number = " . $next
                      . " WHERE doc_type = '" . $db->escape($docType) . "'"
                      . " AND annee = " . (int)$year . " AND entity = 1";
-                if (defined('APC_TRACE')) { echo "[TRACE]   avant UPDATE compteur\n"; @flush(); }
                 $db->query($upd);
-                if (defined('APC_TRACE')) { echo "[TRACE]   apres UPDATE compteur\n"; @flush(); }
             } else {
                 $ins = "INSERT INTO " . $tbl
                      . " (entity, doc_type, annee, last_number)"
                      . " VALUES (1, '" . $db->escape($docType) . "', " . (int)$year . ", 1)";
-                if (defined('APC_TRACE')) { echo "[TRACE]   avant INSERT compteur\n"; @flush(); }
                 $db->query($ins);
-                if (defined('APC_TRACE')) { echo "[TRACE]   apres INSERT compteur\n"; @flush(); }
                 $next = 1;
             }
             $db->commit();
-            if (defined('APC_TRACE')) { echo "[TRACE]   commit OK\n"; @flush(); }
         } catch (Exception $e) {
             $db->rollback();
             dol_syslog('APC Numbering exception : ' . $e->getMessage(), LOG_ERR);

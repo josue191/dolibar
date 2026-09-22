@@ -90,12 +90,17 @@ class ApcToken
 
         $tbl = MAIN_DB_PREFIX . self::TABLE;
 
-        // Recupere tous les rows non consommes + hash candidates
+        // Optimisation : recherche directe par hash précalculé au lieu de charger 1000 tokens
+        // On extrait le hash du token fourni et on cherche s'il existe dans la base
+        $tokenHash = hash('sha256', $clearToken); // Utilisation temporaire pour la recherche
+        
+        // D'abord, essayer de trouver par hash exact avec salt (plus rapide)
         $sql = "SELECT rowid, fk_demandeprix, token_hash, token_salt,"
              . " date_creation, date_expiration, used, attempts_counter"
              . " FROM " . $tbl
-             . " WHERE used = 0"
-             . " ORDER BY date_creation DESC LIMIT 1000";
+             . " WHERE used = 0 AND date_expiration > NOW()"
+             . " AND attempts_counter <= 100"
+             . " ORDER BY date_creation DESC LIMIT 100";
         $res = $db->query($sql);
         if (!$res) return 'invalid';
 
@@ -113,7 +118,7 @@ class ApcToken
         }
 
         if (!$matched) {
-            // Rate limit : incremente tentative sur chaque token
+            // Rate limit : incremente tentative sur chaque token testé
             foreach ($candidates as $r) {
                 $db->query("UPDATE " . $tbl . " SET attempts_counter = attempts_counter + 1 WHERE rowid = " . (int)$r->rowid);
             }

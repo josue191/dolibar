@@ -27,7 +27,9 @@ DEPENDANCES : Dolibarr >= 17 LTS (teste 17.x et 18.x)
   4 — Contenu de l'arborescence
   5 — Mise a jour
   6 — Desinstallation
-  7 — Support / Contact
+  7 — Maintenance et Performance
+  8 — Documentation technique
+  9 — Support / Contact
 
 ====================================================================
 1 — QU'EST-CE QUE LE MODULE apclogistics ?
@@ -191,7 +193,66 @@ DEPENDANCES : Dolibarr >= 17 LTS (teste 17.x et 18.x)
     e. Videz le cache Dolibarr (Admin -> Divers).
 
 ====================================================================
-7 — SUPPORT / CONTACT
+7 — MAINTENANCE ET PERFORMANCE
+====================================================================
+
+  Cache du Dashboard :
+    Le module utilise le cache Dolibarr pour optimiser les performances
+    du tableau de bord. Cette fonctionnalite peut etre activee/desactivee
+    dans la configuration du module (option "Activer le cache").
+    - Widgets compteurs : cache 1 heure
+    - Sommes mensuelles : cache 30 minutes
+    - Series graphiques : cache 1 heure
+
+  Rotation des Logs d'Audit :
+    La table llx_apclogistics_auditlog peut croitre rapidement.
+    Un script de maintenance est fourni :
+      php scripts/maintenance_auditlog.php --retention=365
+    Options disponibles :
+      --retention=365  : Nombre de jours de retention (defaut: 365)
+      --dry-run        : Simulation sans execution
+      --archive        : Archive au lieu de supprimer
+
+    Le script peut etre planifie en cron pour execution automatique.
+
+  Optimisation des Indexes :
+    Le module inclut des indexes sur les champs frequemment
+    recherches. La table de numerotation dispose d'un index unique
+    pour eviter les doublons de references.
+
+  Contraintes Foreign Key :
+    Les contraintes FK sont automatiquement creees lors de
+    l'installation du module (script 003_add_foreign_keys.sql).
+    Elles garantissent l'integrite referentielle entre les tables.
+
+====================================================================
+8 — DOCUMENTATION TECHNIQUE
+====================================================================
+
+  Pour les developpeurs et administrateurs systemes :
+
+    ARCHITECTURE.md
+      Description detaillee de l'architecture du module :
+      - Structure des classes
+      - Cycle de vie des documents
+      - Schema de base de donnees
+      - Conventions de nommage
+      - Securite et performance
+      - Integration Dolibarr
+
+    CONTRIBUTING.md
+      Guide de contribution pour les developpeurs :
+      - Processus de contribution
+      - Standards de codage
+      - Tests et validation
+      - Signalement de bugs
+      - Demande de fonctionnalites
+
+    Ces fichiers sont situes a la racine du depot, en dehors du
+    dossier apclogistics/.
+
+====================================================================
+9 — SUPPORT / CONTACT
 ====================================================================
 
   Equipe Logistique & Systemes d'Information APC ONG :

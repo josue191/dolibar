@@ -37,37 +37,80 @@ $weekStart = dol_print_date($now - 7 * 24 * 3600, '%Y-%m-%d');
 
 /*
  * Helper : compte les documents "en attente" (status < 2, non annulé)
+ * Avec cache Dolibarr (1 heure)
  */
 function apcDashCountPending($db, $table, $statusCol = 'status')
 {
+    global $conf;
+    $cacheKey = 'apclogistics_count_pending_' . $table;
+    
+    // Vérifier le cache
+    if (!empty($conf->global->MAIN_USE_CACHE) && !empty($conf->global->APCLOGISTICS_USE_CACHE)) {
+        $cached = dol_getcache($cacheKey, 3600); // 1 heure
+        if ($cached !== false) return (int)$cached;
+    }
+    
     $sql = "SELECT COUNT(*) AS nb FROM " . MAIN_DB_PREFIX . $table
          . " WHERE " . $statusCol . " < 2 AND " . $statusCol . " <> 9";
     $res = $db->query($sql);
     if (!$res) return 0;
     $o = $db->fetch_object($res);
-    return (int)$o->nb;
+    $result = (int)$o->nb;
+    
+    // Mettre en cache
+    if (!empty($conf->global->MAIN_USE_CACHE) && !empty($conf->global->APCLOGISTICS_USE_CACHE)) {
+        dol_setcache($cacheKey, $result, 3600);
+    }
+    
+    return $result;
 }
 
 /*
  * Helper : somme des montants HT d'une table pour le mois en cours
+ * Avec cache Dolibarr (30 minutes pour les montants)
  */
 function apcDashSumMonth($db, $table, $dateCol, $moneyCol)
 {
-    global $monthStart;
+    global $conf, $monthStart;
+    $cacheKey = 'apclogistics_sum_month_' . $table . '_' . $monthStart;
+    
+    // Vérifier le cache
+    if (!empty($conf->global->MAIN_USE_CACHE) && !empty($conf->global->APCLOGISTICS_USE_CACHE)) {
+        $cached = dol_getcache($cacheKey, 1800); // 30 minutes
+        if ($cached !== false) return (float)$cached;
+    }
+    
     $sql = "SELECT COALESCE(SUM(" . $moneyCol . "),0) AS tot FROM " . MAIN_DB_PREFIX . $table
          . " WHERE " . $dateCol . " >= '" . $db->escape($monthStart) . "'";
     $res = $db->query($sql);
     if (!$res) return 0;
     $o = $db->fetch_object($res);
-    return (float)$o->tot;
+    $result = (float)$o->tot;
+    
+    // Mettre en cache
+    if (!empty($conf->global->MAIN_USE_CACHE) && !empty($conf->global->APCLOGISTICS_USE_CACHE)) {
+        dol_setcache($cacheKey, $result, 1800);
+    }
+    
+    return $result;
 }
 
 /*
  * Helper : série de montants HT par mois (mois glissant, 6 mois)
  * Retourne array('labels'=>[], 'data'=>[])
+ * Avec cache Dolibarr (1 heure pour les séries mensuelles)
  */
 function apcDashSeriesByMonth($db, $table, $dateCol, $moneyCol, $nbMonths = 6)
 {
+    global $conf;
+    $cacheKey = 'apclogistics_series_month_' . $table . '_' . $nbMonths;
+    
+    // Vérifier le cache
+    if (!empty($conf->global->MAIN_USE_CACHE) && !empty($conf->global->APCLOGISTICS_USE_CACHE)) {
+        $cached = dol_getcache($cacheKey, 3600); // 1 heure
+        if ($cached !== false) return json_decode($cached, true);
+    }
+    
     $labels = array();
     $data = array();
     $now = dol_now();
@@ -81,7 +124,14 @@ function apcDashSeriesByMonth($db, $table, $dateCol, $moneyCol, $nbMonths = 6)
         $res = $db->query($sql);
         $data[] = $res ? (float)$db->fetch_object($res)->tot : 0;
     }
-    return array('labels' => $labels, 'data' => $data);
+    $result = array('labels' => $labels, 'data' => $data);
+    
+    // Mettre en cache
+    if (!empty($conf->global->MAIN_USE_CACHE) && !empty($conf->global->APCLOGISTICS_USE_CACHE)) {
+        dol_setcache($cacheKey, json_encode($result), 3600);
+    }
+    
+    return $result;
 }
 
 /*

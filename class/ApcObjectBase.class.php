@@ -102,12 +102,8 @@ abstract class ApcObjectBase extends CommonObject
     {
         global $conf;
 
-        if (defined('APC_TRACE')) { echo "[TRACE] ApcObjectBase::create() entree ref='" . $this->ref . "'\n"; @flush(); }
-
         if (empty($this->ref)) {
-            if (defined('APC_TRACE')) { echo "[TRACE]   avant computeNextRef\n"; @flush(); }
             $this->ref = ApcNumbering::computeNextRef($this, $this->table_element);
-            if (defined('APC_TRACE')) { echo "[TRACE]   apres computeNextRef ref='" . $this->ref . "'\n"; @flush(); }
         }
 
         // Champ 'annee' (exercice) : si la classe le declare et qu'il n'est pas renseigne,
@@ -118,11 +114,8 @@ abstract class ApcObjectBase extends CommonObject
 
         $oldJson = null;
 
-        if (defined('APC_TRACE')) { echo "[TRACE]   avant parent::createCommon\n"; @flush(); }
         $res = parent::createCommon($user, $notrigger);
-        if (defined('APC_TRACE')) { echo "[TRACE]   apres parent::createCommon res=" . var_export($res, true) . " id=" . $this->id . "\n"; @flush(); }
         if ($res > 0) {
-            if (defined('APC_TRACE')) { echo "[TRACE]   avant audit log\n"; @flush(); }
             ApcAuditLog::log(
                 $this->element,
                 (int)$this->id,
@@ -131,15 +124,12 @@ abstract class ApcObjectBase extends CommonObject
                 null,
                 json_encode($this->toArray(), JSON_UNESCAPED_UNICODE)
             );
-            if (defined('APC_TRACE')) { echo "[TRACE]   apres audit log\n"; @flush(); }
         }
         return $res;
     }
 
     public function update($user = 0, $notrigger = 0, $allowemptyref = 0)
     {
-        if (defined('APC_TRACE')) { echo "[TRACE] ApcObjectBase::update() entree id=" . $this->id . " ref='" . $this->ref . "'\n"; @flush(); }
-
         if ($this->refLocked && $this->refHasChanged()) {
             $this->error = 'ErrorRefLockedAfterValidation';
             return -1;
@@ -152,18 +142,13 @@ abstract class ApcObjectBase extends CommonObject
 
         $old = null;
         try {
-            if (defined('APC_TRACE')) { echo "[TRACE]   avant clone/fetch\n"; @flush(); }
             $clone = clone $this;
             $clone->fetch($this->id);
             $old = json_encode($clone->toArray(), JSON_UNESCAPED_UNICODE);
-            if (defined('APC_TRACE')) { echo "[TRACE]   apres clone/fetch\n"; @flush(); }
         } catch (Exception $e) { $old = null; }
 
-        if (defined('APC_TRACE')) { echo "[TRACE]   avant parent::updateCommon\n"; @flush(); }
         $res = parent::updateCommon($user, $notrigger, $allowemptyref);
-        if (defined('APC_TRACE')) { echo "[TRACE]   apres parent::updateCommon res=" . var_export($res, true) . "\n"; @flush(); }
         if ($res > 0) {
-            if (defined('APC_TRACE')) { echo "[TRACE]   avant audit log\n"; @flush(); }
             ApcAuditLog::log(
                 $this->element,
                 (int)$this->id,
@@ -172,7 +157,6 @@ abstract class ApcObjectBase extends CommonObject
                 $old,
                 json_encode($this->toArray(), JSON_UNESCAPED_UNICODE)
             );
-            if (defined('APC_TRACE')) { echo "[TRACE]   apres audit log\n"; @flush(); }
         }
         return $res;
     }
@@ -217,7 +201,10 @@ abstract class ApcObjectBase extends CommonObject
         if (!$res) return false;
         $obj = $this->db->fetch_object($res);
         if (!$obj) return false;
-        return ($obj->ref !== $this->ref);
+        // Utilisation de l'échappement pour la comparaison sécurisée
+        $currentRef = $this->db->escape($obj->ref);
+        $newRef = $this->db->escape($this->ref);
+        return ($currentRef !== $newRef);
     }
 
     /**
@@ -277,6 +264,7 @@ abstract class ApcTableLineBase extends CommonObject
 
     /**
      * Retourne toutes les lignes d'une entete, triees par no_ligne.
+     * Optimisé pour éviter N+1 queries : récupère toutes les colonnes en une seule requête
      * @param DoliDB $db
      * @param int    $parentId
      * @return static[]
@@ -286,13 +274,21 @@ abstract class ApcTableLineBase extends CommonObject
         $self = new static($db);
         $tbl = MAIN_DB_PREFIX . $self->table_element;
         $fk  = $self->fk_parent_column;
-        $sql = "SELECT rowid FROM " . $tbl . " WHERE " . $fk . " = " . (int)$parentId . " ORDER BY no_ligne ASC, rowid ASC";
+        
+        // Optimisation : récupérer toutes les colonnes en une seule requête au lieu de N+1 fetch
+        $sql = "SELECT * FROM " . $tbl . " WHERE " . $fk . " = " . (int)$parentId . " ORDER BY no_ligne ASC, rowid ASC";
         $res = $db->query($sql);
         $lines = array();
         if ($res) {
             while ($obj = $db->fetch_object($res)) {
                 $l = new static($db);
-                if ($l->fetch($obj->rowid) > 0) $lines[] = $l;
+                // Mapping direct des propriétés depuis l'objet DB
+                foreach (get_object_vars($obj) as $key => $value) {
+                    if (property_exists($l, $key)) {
+                        $l->$key = $value;
+                    }
+                }
+                $lines[] = $l;
             }
         }
         return $lines;
