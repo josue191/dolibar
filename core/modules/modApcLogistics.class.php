@@ -373,7 +373,7 @@ class modApcLogistics extends DolibarrModules
     {
         $sql = array();
 
-        $sqlFile = __DIR__ . '/../../../scripts/001_create_schema.sql';
+        $sqlFile = __DIR__ . '/../../scripts/001_create_schema.sql';
         if (@file_exists($sqlFile)) {
             $raw = @file_get_contents($sqlFile);
             if ($raw !== false) {
