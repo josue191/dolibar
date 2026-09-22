@@ -10,6 +10,11 @@ if (! defined('NOTOKENRENEWAL')) define('NOTOKENRENEWAL', '1');
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 $res = 0; if (!$res && file_exists("../main.inc.php")) $res = @include "../main.inc.php"; if (!$res && file_exists("../../main.inc.php")) $res = @include "../../main.inc.php"; if (!$res) die("Include of main fails");
+
+// DEBUG: Afficher dès le début pour confirmer que le fichier modifié est chargé
+echo '<div style="background:#ff6b6b; color:white; padding:10px; margin:10px; font-weight:bold;">';
+echo 'DEBUG MODE ACTIVÉ - Fichier etatbesoin_card.php modifié chargé';
+echo '</div>';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
 require_once __DIR__ . '/class/ApcEtatBesoin.class.php';
@@ -33,6 +38,14 @@ $ref     = GETPOST('ref', 'alpha');
 $action  = GETPOST('action', 'aZ');
 $confirm = GETPOST('confirm', 'alpha');
 $token   = GETPOST('token', 'alpha');
+
+// DEBUG: Afficher l'action courante
+echo '<div style="background:#4ecdc4; color:white; padding:10px; margin:10px;">';
+echo '<strong>DEBUG - Action courante:</strong> ' . $action . '<br>';
+echo '<strong>DEBUG - ID:</strong> ' . $id . '<br>';
+echo '<strong>DEBUG - Méthode HTTP:</strong> ' . $_SERVER['REQUEST_METHOD'] . '<br>';
+echo '<strong>DEBUG - Token:</strong> ' . ($token ? 'PRÉSENT' : 'ABSENT') . '<br>';
+echo '</div>';
 
 $object = new ApcEtatBesoin($db);
 $extrafields = new ExtraFields($db);
@@ -336,6 +349,14 @@ if ($action === 'create' || $action === 'edit') {
     $hiddentoken = '<input type="hidden" name="token" value="' . newToken() . '">';
     $act = ($editing ? 'update' : 'add');
 
+    echo '<div style="background:#95e1d3; color:white; padding:10px; margin:10px;">';
+    echo '<strong>DEBUG - Formulaire:</strong><br>';
+    echo 'Mode édition: ' . ($editing ? 'OUI' : 'NON') . '<br>';
+    echo 'Action formulaire: ' . $act . '<br>';
+    echo 'Action URL: ' . $action . '<br>';
+    echo 'Token généré: ' . substr($hiddentoken, -20) . '<br>';
+    echo '</div>';
+
     print '<form action="' . $_SERVER["PHP_SELF"] . ($editing ? '?id=' . $obj->id : '') . '" method="POST">';
     print $hiddentoken;
     print '<input type="hidden" name="action" value="' . $act . '">';
@@ -405,6 +426,8 @@ if ($action === 'create' || $action === 'edit') {
     // JS
     print '<script type="text/javascript">
     $(document).ready(function() {
+        console.log("DEBUG JS: jQuery chargé, document ready");
+        
         function calcTotal() {
             var sum = 0;
             $(".apc-line-montant").each(function(){
@@ -416,6 +439,24 @@ if ($action === 'create' || $action === 'edit') {
         function APCNumFmt(n){ n = Number(n||0).toFixed(2); var p = n.split("."); p[0]=p[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g," "); return p.join(","); }
         function renumber() { $(".apc-eb-no").each(function(i){ $(this).text(i+1); }); }
         $(document).on("input", ".apc-line-montant", calcTotal);
+        
+        // DEBUG JS: Intercepter la soumission du formulaire
+        $("form").on("submit", function(e) {
+            console.log("DEBUG JS: Formulaire soumis");
+            var formData = $(this).serialize();
+            console.log("DEBUG JS: Données formulaire:", formData);
+            
+            // Compter les lignes
+            var linesCount = $("#apc-eb-lines-body tr").length;
+            console.log("DEBUG JS: Nombre de lignes dans le formulaire:", linesCount);
+            
+            // Afficher les données de chaque ligne
+            $("#apc-eb-lines-body tr").each(function(index) {
+                var depense = $(this).find("input[name^='lines[" + index + "][depense]']").val();
+                var montant = $(this).find("input[name^='lines[" + index + "][montant]']").val();
+                console.log("DEBUG JS: Ligne " + index + " - dépense:", depense, "montant:", montant);
+            });
+        });
         $("#apc-add-line").on("click", function() {
             var n = $("#apc-eb-lines-body tr").length;
             var html = "<tr class=\\"apc-line-row\\">"
