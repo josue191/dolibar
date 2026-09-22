@@ -14,6 +14,9 @@ global $db, $conf, $langs, $user;
 $langs->load('apclogistics@apclogistics');
 $langs->load('main');
 
+// Initialisation de la variable pour éviter l'erreur "Undefined variable"
+$formconfirm = '';
+
 $id      = (int)GETPOST('id', 'int');
 $ref     = GETPOST('ref', 'alpha');
 $action  = GETPOST('action', 'aZ');

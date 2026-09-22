@@ -22,6 +22,9 @@ global $db, $conf, $langs, $user;
 $langs->load('apclogistics@apclogistics');
 $langs->load('main');
 
+// Initialisation de la variable pour éviter l'erreur "Undefined variable"
+$formconfirm = '';
+
 // Auto-create missing tables
 $tableErrors = apc_ensure_tables($db);
 
