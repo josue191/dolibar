@@ -62,15 +62,17 @@ $form = new Form($db);
 if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $token && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($conf->dol_url_root)) $backtopage = $conf->dol_url_root . '/custom/apclogistics/etatbesoin_list.php';
 
-    $object->date_eb = dol_mktime(12, 0, 0, GETPOST('date_ebmonth', 'int'), GETPOST('date_ebday', 'int'), GETPOST('date_ebyear', 'int'));
-    $object->date_eb = $db->idate($object->date_eb);
+    $eb_month = GETPOST('date_ebmonth', 'int');
+    $eb_day   = GETPOST('date_ebday', 'int');
+    $eb_year  = GETPOST('date_ebyear', 'int');
+    $object->date_eb = dol_mktime(12, 0, 0, $eb_month, $eb_day, $eb_year);
     $object->objet                = GETPOST('description', 'alphanohtml');
     $object->signataire_nom_d     = GETPOST('demandeur_nom', 'alphanohtml');
     $object->signataire_fonction_d = GETPOST('fonction', 'alphanohtml');
     $object->note_public          = GETPOST('remarques', 'alphanohtml');
 
     if (empty($object->objet)) { setEventMessages($langs->trans('ErrorFieldRequired', $langs->trans('FieldObjet')), null, 'errors'); $error++; }
-    if (empty($object->date_eb) || $object->date_eb === '1970-01-01') { setEventMessages($langs->trans('ErrorFieldRequired', $langs->trans('EBDate')), null, 'errors'); $error++; }
+    if ($eb_month <= 0 || $eb_day <= 0 || $eb_year <= 0) { setEventMessages($langs->trans('ErrorFieldRequired', $langs->trans('EBDate')), null, 'errors'); $error++; }
 
     if (!$error) {
         $res = $object->create($user);
@@ -99,8 +101,10 @@ if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $toke
 
 // ---- MODIFIER ----
 if ($action === 'update' && $permissiontoedit && !$error && $user->valid && $token) {
-    $object->date_eb = dol_mktime(12, 0, 0, GETPOST('date_ebmonth', 'int'), GETPOST('date_ebday', 'int'), GETPOST('date_ebyear', 'int'));
-    $object->date_eb = $db->idate($object->date_eb);
+    $eb_month = GETPOST('date_ebmonth', 'int');
+    $eb_day   = GETPOST('date_ebday', 'int');
+    $eb_year  = GETPOST('date_ebyear', 'int');
+    $object->date_eb = dol_mktime(12, 0, 0, $eb_month, $eb_day, $eb_year);
     $object->objet                = GETPOST('description', 'alphanohtml');
     $object->signataire_nom_d     = GETPOST('demandeur_nom', 'alphanohtml');
     $object->signataire_fonction_d = GETPOST('fonction', 'alphanohtml');

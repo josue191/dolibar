@@ -20,6 +20,8 @@ $langs->load('main');
 // Auto-create missing tables
 apc_ensure_tables($db);
 
+$formother = new FormOther($db);
+
 if (empty($user->rights->apclogistics->etatbesoin->read)) accessforbidden();
 
 $action     = GETPOST('action', 'aZ');
@@ -52,7 +54,7 @@ $sql_count = "SELECT COUNT(eb.rowid)";
 $sql_from = " FROM " . MAIN_DB_PREFIX . "apclogistics_etatbesoin eb";
 $sql_where = " WHERE eb.entity IN (0," . getEntity('apclogistics_etatbesoin') . ")";
 
-if ($search_ref)       $sql_where .= " AND eb.ref LIKE '%" . $db->escape($search_ref) . "%' OR eb.objet LIKE '%" . $db->escape($search_ref) . "%'";
+if ($search_ref)       $sql_where .= " AND (eb.ref LIKE '%" . $db->escape($search_ref) . "%' OR eb.objet LIKE '%" . $db->escape($search_ref) . "%')";
 if ($search_status !== '' && $search_status != -1) $sql_where .= " AND eb.status = " . (int)$search_status;
 if ($search_date_start > 0) $sql_where .= " AND eb.date_eb >= '" . $db->idate($search_date_start) . "'";
 if ($search_date_end > 0)   $sql_where .= " AND eb.date_eb <= '" . $db->idate($search_date_end) . "'";
@@ -88,6 +90,7 @@ print '</tr></table></div>';
 print '</form>';
 
 // ------- Tableau résultats -------
+$param = '&search_ref=' . urlencode($search_ref) . '&search_status=' . (int)$search_status;
 print_barre_liste($langs->trans('EBTitle') . ' (' . $nbtotal . ')', $page, $_SERVER["PHP_SELF"], $param, $sortfield, $sortorder, '', $num, $nbtotal, 'title_generic.png', 0, '', '', $limit);
 
 print '<div class="div-table-responsive-no-min">';

@@ -120,6 +120,7 @@ class ApcEtatBesoin extends ApcObjectBase
     /** Applique la signature Demandeur, Verificateur OU Approbateur selon $level (0/1/2) */
     public function sign($level, User $user, $nom = null, $fonction = null, $date = null, $notrigger = 0)
     {
+        global $langs;
         if (defined('APC_TRACE')) { echo "[TRACE] sign() entree level=" . $level . " user=" . $user->id . "\n"; @flush(); }
         if ($date === null) $date = dol_now();
         $mapUser = array(
