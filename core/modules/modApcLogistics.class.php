@@ -384,6 +384,9 @@ class modApcLogistics extends DolibarrModules
      * The init function add constants, boxes, permissions and menus (defined in constructor) into Dolibarr database.
      * It also creates data directories AND runs SQL CREATE TABLE from scripts/001_create_schema.sql.
      *
+     * Note: Le script 003_add_foreign_keys.sql doit être exécuté manuellement après l'installation
+     * pour ajouter les contraintes FK sur les tables existantes.
+     *
      * @param string $options Options when enabling module ('', 'noboxes')
      * @return int                 1 if OK, 0 if KO
      */
@@ -407,21 +410,10 @@ class modApcLogistics extends DolibarrModules
             }
         }
 
-        // Script d'ajout des contraintes FK (si existe)
-        $fkFile = __DIR__ . '/../../scripts/003_add_foreign_keys.sql';
-        if (@file_exists($fkFile)) {
-            $raw = @file_get_contents($fkFile);
-            if ($raw !== false) {
-                $raw = preg_replace('/--[^\n]*\n/', "\n", $raw);
-                $raw = preg_replace('/\/\*[\s\S]*?\*\//', '', $raw);
-                $stms = array_filter(array_map('trim', explode(';', $raw)));
-                foreach ($stms as $s) {
-                    if (preg_match('/^(ALTER)\b/i', $s)) {
-                        $sql[] = $s . ';';
-                    }
-                }
-            }
-        }
+        // Note: Le script 003_add_foreign_keys.sql n'est PAS exécuté automatiquement
+        // pour éviter les conflits lors de la réactivation du module.
+        // Il doit être exécuté manuellement par l'administrateur via phpMyAdmin ou CLI
+        // après la première installation du module.
 
         return $this->_init($sql, $options);
     }
