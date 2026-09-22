@@ -82,17 +82,23 @@ if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $toke
         if ($res > 0) {
             $lignes = GETPOST('lines', 'array');
             $lineErrors = array();
+            $addedCount = 0;
             if (is_array($lignes)) {
                 foreach ($lignes as $line) {
                     if (empty($line['depense'])) continue;
                     $addRes = $object->addline($user, $line['depense'], $line['projet_or_budget'], $line['compte'], (float) str_replace(',', '.', $line['montant']));
-                    if ($addRes <= 0) {
+                    if ($addRes > 0) {
+                        $addedCount++;
+                    } else {
                         $lineErrors[] = $line['depense'] . ': ' . $object->error;
                     }
                 }
             }
             if (!empty($lineErrors)) {
                 setEventMessages('Lignes non enregistrées : ' . implode(' | ', $lineErrors), null, 'errors');
+            }
+            if ($addedCount === 0 && empty($lineErrors)) {
+                setEventMessages('Aucune ligne ajoutée - veuillez remplir au moins une ligne de dépense', null, 'warnings');
             }
             header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
             exit;
