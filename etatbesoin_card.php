@@ -11,10 +11,6 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 $res = 0; if (!$res && file_exists("../main.inc.php")) $res = @include "../main.inc.php"; if (!$res && file_exists("../../main.inc.php")) $res = @include "../../main.inc.php"; if (!$res) die("Include of main fails");
 
-// DEBUG: Afficher dès le début pour confirmer que le fichier modifié est chargé
-echo '<div style="background:#ff6b6b; color:white; padding:10px; margin:10px; font-weight:bold;">';
-echo 'DEBUG MODE ACTIVÉ - Fichier etatbesoin_card.php modifié chargé';
-echo '</div>';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/html.formother.class.php';
 require_once __DIR__ . '/class/ApcEtatBesoin.class.php';
