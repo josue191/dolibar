@@ -65,6 +65,12 @@ $form = new Form($db);
 if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $token && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($conf->dol_url_root)) $backtopage = $conf->dol_url_root . '/custom/apclogistics/etatbesoin_list.php';
 
+    // DEBUG: Afficher les données reçues
+    echo '<div style="background:#fff3cd; border:1px solid #ffc107; padding:10px; margin:10px;">';
+    echo '<strong>DEBUG - Données POST reçues :</strong><br>';
+    echo '<pre>' . print_r($_POST, true) . '</pre>';
+    echo '</div>';
+
     $eb_month = GETPOST('date_ebmonth', 'int');
     $eb_day   = GETPOST('date_ebday', 'int');
     $eb_year  = GETPOST('date_ebyear', 'int');
@@ -74,24 +80,56 @@ if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $toke
     $object->signataire_fonction_d = GETPOST('fonction', 'alphanohtml');
     $object->note_public          = GETPOST('remarques', 'alphanohtml');
 
-    if (empty($object->objet)) { setEventMessages($langs->trans('ErrorFieldRequired', $langs->trans('FieldObjet')), null, 'errors'); $error++; }
-    if ($eb_month <= 0 || $eb_day <= 0 || $eb_year <= 0) { setEventMessages($langs->trans('ErrorFieldRequired', $langs->trans('EBDate')), null, 'errors'); $error++; }
+    echo '<div style="background:#d1ecf1; border:1px solid #bee5eb; padding:10px; margin:10px;">';
+    echo '<strong>DEBUG - Données de l\'objet :</strong><br>';
+    echo 'Date: ' . print_r($object->date_eb, true) . '<br>';
+    echo 'Objet: ' . print_r($object->objet, true) . '<br>';
+    echo 'Demandeur: ' . print_r($object->signataire_nom_d, true) . '<br>';
+    echo '</div>';
+
+    if (empty($object->objet)) { setEventMessages($langs->trans('ErrorFieldRequired', $langs->trans('FieldObjet')), null, 'errors'); $error++; echo '<div style="color:red;">ERREUR: Champ objet vide</div>'; }
+    if ($eb_month <= 0 || $eb_day <= 0 || $eb_year <= 0) { setEventMessages($langs->trans('ErrorFieldRequired', $langs->trans('EBDate')), null, 'errors'); $error++; echo '<div style="color:red;">ERREUR: Date invalide (mois=' . $eb_month . ', jour=' . $eb_day . ', annee=' . $eb_year . ')</div>'; }
 
     if (!$error) {
+        echo '<div style="background:#d4edda; border:1px solid #c3e6cb; padding:10px; margin:10px;">';
+        echo '<strong>DEBUG - Tentative de création...</strong><br>';
+        echo '</div>';
+
         $res = $object->create($user);
+        echo '<div style="background:#d4edda; border:1px solid #c3e6cb; padding:10px; margin:10px;">';
+        echo '<strong>DEBUG - Résultat create(): ' . $res . '</strong><br>';
+        echo 'ID créé: ' . $object->id . '<br>';
+        echo 'Erreur: ' . $object->error . '<br>';
+        echo '</div>';
+
         if ($res > 0) {
             $lignes = GETPOST('lines', 'array');
+            echo '<div style="background:#fff3cd; border:1px solid #ffc107; padding:10px; margin:10px;">';
+            echo '<strong>DEBUG - Lignes reçues:</strong><br>';
+            echo 'Nombre de lignes: ' . (is_array($lignes) ? count($lignes) : 0) . '<br>';
+            echo '<pre>' . print_r($lignes, true) . '</pre>';
+            echo '</div>';
+
             $lineErrors = array();
             $addedCount = 0;
             if (is_array($lignes)) {
-                foreach ($lignes as $line) {
-                    if (empty($line['depense'])) continue;
+                foreach ($lignes as $idx => $line) {
+                    echo '<div style="background:#e2e3e5; padding:5px; margin:5px;">';
+                    echo 'Ligne ' . $idx . ': dépense="' . $line['depense'] . '", montant="' . $line['montant'] . '"<br>';
+                    if (empty($line['depense'])) {
+                        echo '<span style="color:orange;">SKIPPED - dépense vide</span>';
+                        continue;
+                    }
                     $addRes = $object->addline($user, $line['depense'], $line['projet_or_budget'], $line['compte'], (float) str_replace(',', '.', $line['montant']));
+                    echo 'Résultat addline: ' . $addRes . '<br>';
                     if ($addRes > 0) {
                         $addedCount++;
+                        echo '<span style="color:green;">SUCCÈS</span>';
                     } else {
                         $lineErrors[] = $line['depense'] . ': ' . $object->error;
+                        echo '<span style="color:red;">ERREUR: ' . $object->error . '</span>';
                     }
+                    echo '</div>';
                 }
             }
             if (!empty($lineErrors)) {
@@ -100,10 +138,18 @@ if ($action === 'add' && $permissiontocreate && !$error && $user->valid && $toke
             if ($addedCount === 0 && empty($lineErrors)) {
                 setEventMessages('Aucune ligne ajoutée - veuillez remplir au moins une ligne de dépense', null, 'warnings');
             }
+
+            echo '<div style="background:#d4edda; border:1px solid #c3e6cb; padding:10px; margin:10px;">';
+            echo '<strong>DEBUG - Résumé:</strong><br>';
+            echo 'Lignes ajoutées: ' . $addedCount . '<br>';
+            echo 'Erreurs: ' . count($lineErrors) . '<br>';
+            echo '</div>';
+
             header('Location: ' . DOL_URL_ROOT . '/custom/apclogistics/etatbesoin_card.php?id=' . $object->id);
             exit;
         } else {
             setEventMessages($object->error, $object->errors, 'errors');
+            echo '<div style="color:red; font-weight:bold;">ERREUR CRÉATION: ' . $object->error . '</div>';
         }
     }
 }
